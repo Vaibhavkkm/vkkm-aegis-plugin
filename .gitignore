@@ -1,0 +1,27 @@
+# OS artifacts
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Environment secrets — never commit API keys
+.env
+.env.local
+.env*.local
+
+# Editor directories
+.vscode/
+.idea/
+*.code-workspace
+
+# Test output
+tests/output/
+*.test-report.json
+
+# Temporary files
+tmp/
+temp/

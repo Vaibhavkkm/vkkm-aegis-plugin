@@ -1,0 +1,90 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "VKKM Aegis MCP Connector Configuration",
+    "description": "JSON Schema for .mcp.json connector validation",
+    "type": "object",
+    "required": [
+        "mcpServers"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "mcpServers": {
+            "type": "object",
+            "description": "Map of connector name to connector configuration",
+            "required": [
+                "factset",
+                "msci",
+                "google_drive",
+                "docusign",
+                "sharepoint"
+            ],
+            "additionalProperties": {
+                "type": "object",
+                "required": [
+                    "label",
+                    "description",
+                    "purpose",
+                    "auth"
+                ],
+                "properties": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "purpose": {
+                        "type": "string"
+                    },
+                    "auth": {
+                        "type": "string",
+                        "enum": [
+                            "api_key",
+                            "oauth2",
+                            "none"
+                        ]
+                    },
+                    "env": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "scopes": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "capabilities": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "status": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "data_labeling_rules": {
+            "type": "object",
+            "required": [
+                "no_connector_active",
+                "connector_active"
+            ],
+            "properties": {
+                "no_connector_active": {
+                    "type": "string"
+                },
+                "connector_active": {
+                    "type": "string"
+                }
+            }
+        },
+        "note": {
+            "type": "string"
+        }
+    }
+}

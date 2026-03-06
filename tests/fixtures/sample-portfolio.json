@@ -1,0 +1,93 @@
+{
+    "_description": "Sample portfolio for testing /vkkm:stress-test. Classic 60/30/10 balanced portfolio.",
+    "_note": "Paste this JSON into Claude and run /vkkm:stress-test",
+    "portfolio_name": "VKKM Sample Balanced Portfolio",
+    "currency": "EUR",
+    "total_value": 500000,
+    "as_of_date": "2026-03-06",
+    "holdings": [
+        {
+            "asset_class": "Equities",
+            "allocation_pct": 60,
+            "value_eur": 300000,
+            "breakdown": [
+                {
+                    "name": "S&P 500 ETF (SPY equivalent)",
+                    "allocation_pct": 25,
+                    "value_eur": 125000,
+                    "region": "US"
+                },
+                {
+                    "name": "Euro Stoxx 50 ETF",
+                    "allocation_pct": 20,
+                    "value_eur": 100000,
+                    "region": "EU"
+                },
+                {
+                    "name": "EM Equity ETF",
+                    "allocation_pct": 10,
+                    "value_eur": 50000,
+                    "region": "Emerging Markets"
+                },
+                {
+                    "name": "Individual stock: ASML Holding NV",
+                    "allocation_pct": 5,
+                    "value_eur": 25000,
+                    "region": "EU"
+                }
+            ]
+        },
+        {
+            "asset_class": "Fixed Income / Bonds",
+            "allocation_pct": 30,
+            "value_eur": 150000,
+            "breakdown": [
+                {
+                    "name": "German Bund 10yr (yield: 2.4%)",
+                    "allocation_pct": 15,
+                    "value_eur": 75000,
+                    "duration_years": 9.2
+                },
+                {
+                    "name": "EUR IG Corporate Bond ETF",
+                    "allocation_pct": 10,
+                    "value_eur": 50000,
+                    "duration_years": 6.1
+                },
+                {
+                    "name": "USD HY Corporate Bond ETF",
+                    "allocation_pct": 5,
+                    "value_eur": 25000,
+                    "duration_years": 4.5
+                }
+            ]
+        },
+        {
+            "asset_class": "Alternatives / Other",
+            "allocation_pct": 10,
+            "value_eur": 50000,
+            "breakdown": [
+                {
+                    "name": "Gold ETF (XAU)",
+                    "allocation_pct": 5,
+                    "value_eur": 25000
+                },
+                {
+                    "name": "Private Equity Fund (illiquid, 5yr lock-up)",
+                    "allocation_pct": 5,
+                    "value_eur": 25000,
+                    "liquidity": "illiquid"
+                }
+            ]
+        }
+    ],
+    "fx_exposure": {
+        "USD_pct": 30,
+        "EUR_pct": 55,
+        "other_pct": 15
+    },
+    "risk_profile": "Balanced — medium risk tolerance",
+    "investment_horizon": "5–10 years",
+    "income_requirement": "None — full reinvestment",
+    "_test_hint": "Suggested stress test scenarios to run:\n1. Rate hike +200bps (impact on bonds, equity multiples)\n2. Equity crash -30% (impact on equities allocation)\n3. EUR/USD FX shock -15% (impact on USD-denominated holdings)\n4. Credit crisis: HY spreads +400bps (impact on HY bond holding)"
+}

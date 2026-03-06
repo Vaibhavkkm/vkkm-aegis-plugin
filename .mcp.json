@@ -1,0 +1,95 @@
+{
+    "mcpServers": {
+        "factset": {
+            "label": "FactSet",
+            "description": "Live market data — equities, bonds, FX rates, risk factors, portfolio analytics",
+            "purpose": "Powers /vkkm:stress-test and /vkkm:risk-register with live portfolio data. When connected, outputs are labeled DATA-GROUNDED instead of ILLUSTRATIVE ESTIMATE.",
+            "auth": "api_key",
+            "env": {
+                "FACTSET_API_KEY": "YOUR_FACTSET_API_KEY_HERE",
+                "FACTSET_BASE_URL": "https://api.factset.com/content"
+            },
+            "capabilities": [
+                "equities",
+                "fixed_income",
+                "fx",
+                "risk_factors",
+                "portfolio_analytics"
+            ],
+            "status": "optional — plugin runs in Illustrative Estimate mode without this connector"
+        },
+        "msci": {
+            "label": "MSCI",
+            "description": "Index data, ESG risk factors, factor risk models",
+            "purpose": "Powers ESG risk scoring and factor exposure analysis in /vkkm:risk-register and /vkkm:stress-test.",
+            "auth": "api_key",
+            "env": {
+                "MSCI_API_KEY": "YOUR_MSCI_API_KEY_HERE",
+                "MSCI_BASE_URL": "https://api.msci.com"
+            },
+            "capabilities": [
+                "index_data",
+                "esg_scores",
+                "factor_models",
+                "risk_analytics"
+            ],
+            "status": "optional"
+        },
+        "google_drive": {
+            "label": "Google Drive",
+            "description": "Batch document scanning — upload contracts and agreements directly from Google Drive",
+            "purpose": "Powers /vkkm:scan-document for batch contract analysis without manual copy-paste.",
+            "auth": "oauth2",
+            "scopes": [
+                "https://www.googleapis.com/auth/drive.readonly"
+            ],
+            "env": {
+                "GOOGLE_CLIENT_ID": "YOUR_GOOGLE_CLIENT_ID_HERE",
+                "GOOGLE_CLIENT_SECRET": "YOUR_GOOGLE_CLIENT_SECRET_HERE"
+            },
+            "capabilities": [
+                "file_read",
+                "folder_browse",
+                "batch_upload"
+            ],
+            "status": "optional"
+        },
+        "docusign": {
+            "label": "DocuSign",
+            "description": "Contract ingestion — pull live contracts from DocuSign envelopes for risk scanning",
+            "purpose": "Powers /vkkm:scan-document for direct contract ingestion from DocuSign workflows.",
+            "auth": "oauth2",
+            "env": {
+                "DOCUSIGN_INTEGRATION_KEY": "YOUR_DOCUSIGN_INTEGRATION_KEY_HERE",
+                "DOCUSIGN_BASE_URL": "https://www.docusign.net/restapi"
+            },
+            "capabilities": [
+                "envelope_read",
+                "document_download"
+            ],
+            "status": "optional"
+        },
+        "sharepoint": {
+            "label": "SharePoint",
+            "description": "Enterprise document access — scan contracts and risk documents stored in SharePoint",
+            "purpose": "Powers /vkkm:scan-document and /vkkm:risk-register for enterprise document workflows.",
+            "auth": "oauth2",
+            "env": {
+                "SHAREPOINT_TENANT_ID": "YOUR_TENANT_ID_HERE",
+                "SHAREPOINT_CLIENT_ID": "YOUR_CLIENT_ID_HERE",
+                "SHAREPOINT_CLIENT_SECRET": "YOUR_CLIENT_SECRET_HERE"
+            },
+            "capabilities": [
+                "site_read",
+                "file_read",
+                "folder_browse"
+            ],
+            "status": "optional"
+        }
+    },
+    "data_labeling_rules": {
+        "no_connector_active": "📊 ILLUSTRATIVE ESTIMATE — Based on standard market assumptions, not live data.",
+        "connector_active": "📊 DATA-GROUNDED — Based on live data from {connector_name}."
+    },
+    "note": "All connectors are optional. VKKM Aegis operates in Illustrative Estimate mode when no live data connector is active. Connect FactSet or MSCI for production-grade financial analysis."
+}

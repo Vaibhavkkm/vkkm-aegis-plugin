@@ -1,0 +1,94 @@
+FREELANCE SERVICE AGREEMENT
+
+This Freelance Service Agreement ("Agreement") is entered into as of 1 March 2026,
+between Creative Agency Ltd, a company registered in the United Kingdom
+("Client"), and the individual service provider ("Freelancer").
+
+1. SERVICES
+The Freelancer agrees to design and develop a marketing website comprising up to
+five (5) pages as directed by the Client. Additional pages or features not specified
+herein may be requested by the Client at any time, at no additional charge, at the
+Client's sole discretion.
+
+2. PAYMENT
+The Client shall pay the Freelancer a fixed fee of £4,500 for the completed project.
+Payment terms are Net 90 days from the date of invoice. No late payment interest
+shall apply. The Client may withhold payment indefinitely if the deliverables are
+deemed unsatisfactory at the Client's sole discretion.
+
+3. INTELLECTUAL PROPERTY
+Upon execution of this Agreement, all work product, designs, code, and materials
+created by the Freelancer shall immediately become the sole and exclusive property
+of the Client. This transfer of ownership takes effect regardless of whether payment
+has been made.
+
+4. TERMINATION
+The Client may terminate this Agreement at any time, for any reason or no reason,
+by providing two (2) hours' written notice to the Freelancer. In the event of
+termination, the Freelancer shall not be entitled to any payment for work completed
+or in progress.
+
+5. CONFIDENTIALITY
+The Freelancer agrees to keep all Client information strictly confidential. This
+obligation applies to all information, whether or not designated as confidential,
+and survives termination of this Agreement indefinitely. No equivalent obligation
+applies to the Client with respect to the Freelancer's information.
+
+6. LIABILITY
+The Freelancer shall be solely and unlimitedly liable for any and all damages,
+losses, claims, or expenses arising out of or related to this Agreement, including
+but not limited to indirect, incidental, consequential, and punitive damages.
+The Client's liability to the Freelancer shall not exceed £100 under any
+circumstances.
+
+7. WARRANTIES
+The Freelancer warrants that all deliverables will be free from defects for a
+period of thirty (30) days after delivery. Acceptance criteria shall be determined
+solely by the Client at the time of review.
+
+8. AMENDMENTS
+The Client reserves the right to amend any term of this Agreement at any time
+without notice to the Freelancer. Continued provision of services constitutes
+acceptance of any amendments.
+
+9. GOVERNING LAW AND JURISDICTION
+This Agreement shall be governed by and construed in accordance with the laws of
+the State of Delaware, United States. Any disputes shall be resolved exclusively
+in the courts of Delaware, USA.
+
+10. DISPUTE RESOLUTION
+All disputes arising under this Agreement shall be resolved solely through litigation
+in the courts of Delaware. No alternative dispute resolution mechanisms shall apply.
+
+11. RENEWAL
+This Agreement shall automatically renew for successive twelve (12) month periods
+unless either party provides written notice of termination at least three (3)
+business days before the renewal date.
+
+12. DELIVERABLES
+The Freelancer will deliver a fully responsive, cross-browser-compatible marketing
+website including: homepage, about page, services page, blog, and contact page.
+Each deliverable will include a written acceptance checklist with objective criteria
+that both parties must sign off before the next phase begins.
+
+13. FORCE MAJEURE
+Neither party shall be held liable for failure to perform its obligations under
+this Agreement due to circumstances beyond its reasonable control, including but
+not limited to acts of God, government actions, pandemics, power outages, or
+internet service disruptions. In such cases, the affected party must notify the
+other in writing within 48 hours and provide a revised timeline.
+
+14. DATA PROTECTION
+The Client confirms it is the data controller for any personal data processed under
+this Agreement. The Freelancer agrees to process personal data only as instructed by
+the Client and to implement appropriate technical and organisational security measures
+in accordance with applicable data protection law, including GDPR where applicable.
+
+15. ENTIRE AGREEMENT
+This Agreement constitutes the entire agreement between the parties and supersedes
+all prior negotiations, representations, or agreements. Any variation must be made
+in writing — signed by both parties.
+
+---
+Client signature: ___________________     Date: _____________
+Freelancer signature: _______________     Date: _____________

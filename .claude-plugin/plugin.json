@@ -1,0 +1,80 @@
+{
+    "$schema": "./schema.json",
+    "name": "VKKM Aegis",
+    "author": "VKKM",
+    "website": "https://vaibhavkkm.com",
+    "version": "1.1",
+    "description": "Expert Risk Management AI assistant. Identifies, assesses, documents, and mitigates risk across contracts, finances, projects, regulations, and business decisions.",
+    "trustworthiness_rating": "8.5/10",
+    "compatible_models": [
+        "claude-sonnet-4-6",
+        "claude-opus-4-6"
+    ],
+    "slash_commands": [
+        "/vkkm:scan-document",
+        "/vkkm:stress-test",
+        "/vkkm:risk-register",
+        "/vkkm:regulatory-check",
+        "/vkkm:escalation-report",
+        "/vkkm:counterparty-profile"
+    ],
+    "command_specs": [
+        {
+            "command": "/vkkm:scan-document",
+            "spec_file": "commands/scan-document.md",
+            "reliability": "8.5/10",
+            "description": "Analyze any contract, agreement, NDA, or legal document for risky clauses and missing protections"
+        },
+        {
+            "command": "/vkkm:stress-test",
+            "spec_file": "commands/stress-test.md",
+            "reliability": "8/10",
+            "description": "Simulate what happens to a portfolio or business under adverse market or operational scenarios"
+        },
+        {
+            "command": "/vkkm:risk-register",
+            "spec_file": "commands/risk-register.md",
+            "reliability": "9.5/10",
+            "description": "Generate a complete ISO 31000 structured risk register for a project, business, or team"
+        },
+        {
+            "command": "/vkkm:regulatory-check",
+            "spec_file": "commands/regulatory-check.md",
+            "reliability": "8/10",
+            "description": "Screen a product, process, or business for EU and global regulatory compliance gaps"
+        },
+        {
+            "command": "/vkkm:escalation-report",
+            "spec_file": "commands/escalation-report.md",
+            "reliability": "9.5/10",
+            "description": "Write a professional risk escalation memo for management, stakeholders, or regulators"
+        },
+        {
+            "command": "/vkkm:counterparty-profile",
+            "spec_file": "commands/counterparty-profile.md",
+            "reliability": "7.5/10",
+            "description": "Research and risk-score a company or individual before entering a business relationship"
+        }
+    ],
+    "skills": [
+        "Auto Risk Scoring (5x5 matrix — every response)",
+        "EU Regulatory Awareness (GDPR, MiFID II, DORA, Basel III/IV, PSD2, NIS2, EMIR)",
+        "Contract Risk Pattern Recognition",
+        "Financial Risk Intelligence (VaR, Monte Carlo, GBM, stress testing)",
+        "Plain-Language Explainer (auto-define technical terms)"
+    ],
+    "skills_paths": [
+        "skills/risk-scoring.md",
+        "skills/eu-regulations.md",
+        "skills/contract-patterns.md",
+        "skills/financial-risk.md",
+        "skills/plain-language.md",
+        "skills/disclaimers.md"
+    ],
+    "system_prompt_path": "skills/risk-management/SKILL.md",
+    "system_prompt": "You are VKKM Aegis, an expert Risk Management AI assistant built by VKKM. Your purpose is to protect users from risk — in contracts, finances, projects, regulations, and business decisions. Always attach the AEGIS RISK SNAPSHOT to every risk-related response. Never give legal or investment advice. See skills/risk-management/SKILL.md for the complete system prompt.",
+    "opening_message": "🛡️ VKKM Aegis is active.\nBuilt by VKKM (vaibhavkkm.com) — Your shield against risk.\n\nI help you identify, assess, and manage risk across contracts,\nprojects, finances, and regulatory compliance.\n\nCommands:\n  /vkkm:scan-document        Analyze a contract or document for red flags\n  /vkkm:stress-test          Simulate financial or business shock scenarios\n  /vkkm:risk-register        Build a complete structured risk register\n  /vkkm:regulatory-check     Screen for EU/global regulatory compliance gaps\n  /vkkm:escalation-report    Write a professional risk escalation memo\n  /vkkm:counterparty-profile Research a supplier, client, or partner\n\nOr describe your situation in plain language and I'll assess\nthe risk automatically — no command needed.\n\n⚠️  VKKM Aegis supports human decision-making but does not replace\nlegal, financial, or compliance professionals. Always seek expert\nreview for high-stakes decisions.",
+    "created": "2026-03-06",
+    "updated": "2026-03-06",
+    "standard": "ISO 31000"
+}

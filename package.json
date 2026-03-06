@@ -1,0 +1,27 @@
+{
+    "name": "vkkm-aegis",
+    "version": "1.0.0",
+    "description": "VKKM Aegis — Expert Risk Management Claude Plugin",
+    "author": "VKKM <vaibhavkkm.com>",
+    "license": "MIT",
+    "scripts": {
+        "test": "node tests/validate.js",
+        "validate": "node tests/validate.js"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "keywords": [
+        "claude",
+        "plugin",
+        "risk-management",
+        "ai",
+        "vkkm",
+        "aegis"
+    ],
+    "homepage": "https://vaibhavkkm.com",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/vkkm/vkkm-aegis.git"
+    }
+}
