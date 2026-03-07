@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * VKKM Aegis v3.0 — Validation Suite
+ * VKKM Aegis — Validation Suite
  * Built by VKKM (vaibhavkkm.com)
  *
  * Run with: npm test

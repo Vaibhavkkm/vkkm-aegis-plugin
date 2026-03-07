@@ -1,6 +1,6 @@
 # VKKM Aegis — Deployment Guide (Hugging Face Spaces) 🚀
 
-This guide explains how to host your **VKKM Aegis v3.0** backend for free so that 50+ people can use it simultaneously.
+This guide explains how to host your **VKKM Aegis** backend for free so that 50+ people can use it simultaneously.
 
 ---
 

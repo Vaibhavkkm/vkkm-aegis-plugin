@@ -1,7 +1,7 @@
 {
     "name": "vkkm-aegis",
     "version": "3.0.0",
-    "description": "VKKM Aegis v3.0 — Enterprise Finance Risk Management Claude Plugin",
+    "description": "VKKM Aegis — Enterprise Finance Risk Management Claude Plugin",
     "author": "VKKM <vaibhavkkm.com>",
     "license": "MIT",
     "scripts": {
