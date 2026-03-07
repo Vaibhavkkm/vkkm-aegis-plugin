@@ -87,19 +87,31 @@ These run in the background on every response. You don't need to ask — Aegis i
 
 ## 🛠️ Getting Started
 
-### Option 1 — Claude Projects / Custom Instructions
-Paste the full contents of `skills/risk-management/SKILL.md` as your custom instructions or system prompt.
+VKKM Aegis is packaged as an official **Model Context Protocol (MCP)** server. You can install it globally via NPM to connect your Claude Desktop app directly to the rigorous mathematical models hosted in the cloud.
 
-### Option 2 — MCP Architecture (Recommended for v3.0)
-To unlock the enterprise mathematical models, machine learning, and live data, you must run the Python MCP server alongside Claude:
-```bash
-# Install the quant libraries (numpy, scipy, scikit-learn, yfinance, openpyxl, fastapi)
-npm run mcp:install
+### Option 1 — Claude Desktop App (Recommended)
+To install Aegis directly into your Claude Desktop application (macOS/Windows):
+1. Open your Claude Desktop app.
+2. Go to **Settings** > **Developer** > **Edit Config**.
+3. Add the following to your `claude_desktop_config.json`:
 
-# Start the server on port 8082
-npm run mcp:start 
+```json
+{
+  "mcpServers": {
+    "vkkm-aegis": {
+      "command": "npx",
+      "args": ["-y", "vkkm-aegis"]
+    }
+  }
+}
 ```
-Once the server is running, Claude will seamlessly route high-complexity math to the backend for processing.
+4. Restart Claude Desktop. Aegis will automatically proxy all math processing to the scalable Hugging Face cloud engine.
+
+### Option 2 — Claude Projects (No Code Setup)
+1. In `claude.ai`, create a new Project.
+2. Paste the contents of `skills/risk-management/SKILL.md` into the "Project Instructions" section.
+3. Update the server instruction to say:
+   `"The Python MCP server is located at https://vaibhavkkm-vkkm-aegis.hf.space"`
 
 ---
 

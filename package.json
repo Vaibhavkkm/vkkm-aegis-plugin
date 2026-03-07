@@ -32,6 +32,21 @@
     "homepage": "https://vaibhavkkm.com",
     "repository": {
         "type": "git",
-        "url": "https://github.com/vkkm/vkkm-aegis.git"
+        "url": "git+https://github.com/vkkm/vkkm-aegis.git"
+    },
+    "main": "index.js",
+    "type": "module",
+    "bin": {
+        "vkkm-aegis": "./index.js"
+    },
+    "directories": {
+        "test": "tests"
+    },
+    "bugs": {
+        "url": "https://github.com/Vaibhavkkm/vkkm-aegis-plugin/issues"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.27.1",
+        "axios": "^1.13.6"
     }
 }
