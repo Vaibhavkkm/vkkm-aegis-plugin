@@ -238,6 +238,34 @@ class LiquidityResponse(BaseModel):
     trough_month: int
 
 
+class PlotMonteCarloRequest(BaseModel):
+    """Input for /plot/monte-carlo endpoint"""
+    assets: List[PortfolioAsset] = Field(..., description="List of portfolio positions")
+    portfolio_value: float = Field(..., gt=0.0, description="Total portfolio value in base currency")
+    horizon_days: int = Field(1, ge=1, le=252, description="Horizon in trading days")
+    simulations: int = Field(1000, ge=100, le=10000, description="Paths to simulate and plot (keep it low for drawing)")
+
+
+class SentimentRequest(BaseModel):
+    """Input for /sentiment endpoint"""
+    ticker: str = Field(..., description="Stock ticker to fetch news for (e.g., AAPL)")
+
+
+class CryptoRiskRequest(BaseModel):
+    """Input for /crypto-risk endpoint"""
+    coin_id: str = Field(..., description="CoinGecko ID (e.g., 'bitcoin', 'ethereum', 'solana')")
+    portfolio_value: float = Field(..., gt=0.0, description="Fiat value of holdings")
+    confidence: float = Field(0.99, description="VaR confidence level (e.g. 0.99)")
+
+
+class PitchbookRequest(BaseModel):
+    """Input for /export/pdf endpoint"""
+    company_name: str = Field(..., description="Company name for the title page")
+    pd_score: float = Field(..., description="Probability of default percentage")
+    var_99: float = Field(..., description="99% Value at Risk amount")
+    z_score: float = Field(..., description="Altman Z-Score")
+    risk_zone: str = Field(..., description="Safe, Grey, or Distress")
+
 # ─── Core calculation functions ────────────────────────────────────────────────
 
 def _simulate_portfolio_gbm(
@@ -1018,6 +1046,255 @@ def fetch_portfolio_sql(req: SQLPortfolioRequest):
         logging.error(f"SQL Portfolio Fetch Error: {e}")
         raise HTTPException(status_code=400, detail=f"Failed to fetch portfolio from SQL DB: {str(e)}")
 
+@app.post("/plot/monte-carlo", tags=["Market Risk"])
+def plot_monte_carlo(req: PlotMonteCarloRequest):
+    """
+    Run a Monte Carlo VaR simulation and return a Base64-encoded Matplotlib chart
+    drawing the simulated paths for direct rendering in the Claude UI.
+    """
+    try:
+        import matplotlib
+        matplotlib.use('Agg')  # Required for headless server environments
+        import matplotlib.pyplot as plt
+        import seaborn as sns
+    except ImportError:
+        raise HTTPException(status_code=503, detail="matplotlib/seaborn not installed")
+
+    import base64
+    from io import BytesIO
+
+    # For plotting paths over time, we generate a visual representation
+    dt = 1.0 / 252.0
+    steps = req.horizon_days
+    n_paths = min(req.simulations, 500) # Only plot max 500 lines so it's readable
+    
+    # Calculate portfolio weighted mu and sigma as an approximation for the visual plot
+    port_mu = sum(a.weight * a.mu for a in req.assets)
+    port_sigma = math.sqrt(sum((a.weight * a.sigma)**2 for a in req.assets))
+    
+    if port_sigma == 0:
+        port_sigma = 0.0001
+        
+    # Generate price paths
+    paths = np.zeros((steps + 1, n_paths))
+    paths[0] = req.portfolio_value
+    
+    for t in range(1, steps + 1):
+        Z = np.random.standard_normal(n_paths)
+        paths[t] = paths[t-1] * np.exp((port_mu - 0.5 * port_sigma**2) * dt + port_sigma * math.sqrt(dt) * Z)
+
+    sns.set_theme(style="darkgrid")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    # Plot all paths
+    ax.plot(paths, lw=0.8, alpha=0.6)
+    
+    # Plot mean path in thick red
+    mean_path = np.mean(paths, axis=1)
+    ax.plot(mean_path, color='red', lw=3, label='Mean Path')
+    
+    ax.set_title(f"Monte Carlo Simulation ({req.horizon_days} Days, {n_paths} Paths)", fontsize=14, fontweight='bold')
+    ax.set_xlabel("Trading Days")
+    ax.set_ylabel("Portfolio Value (Base Currency)")
+    ax.legend()
+    
+    # Save to buffer
+    buf = BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight', dpi=150)
+    plt.close(fig)
+    
+    buf.seek(0)
+    img_str = base64.b64encode(buf.read()).decode('utf-8')
+    return {"image_base64": img_str}
+
+
+@app.post("/sentiment", tags=["Live Data"])
+def get_sentiment(req: SentimentRequest):
+    """
+    Fetch the latest news headlines for a ticker and use FinBERT to
+    calculate a quantitative Bullish / Bearish sentiment score.
+    """
+    try:
+        import yfinance as yf
+        from transformers import pipeline
+    except ImportError:
+        raise HTTPException(status_code=503, detail="transformers or yfinance not installed")
+
+    ticker_obj = yf.Ticker(req.ticker)
+    news = ticker_obj.news
+    if not news:
+        return {"ticker": req.ticker, "sentiment": "Neutral", "score": 0.0, "analyzed_headlines": 0}
+
+    # Limit to latest 10 headlines to save CPU on HF Free tier
+    headlines = [n.get('title', '') for n in news[:10] if n.get('title')]
+    
+    if not headlines:
+        return {"ticker": req.ticker, "sentiment": "Neutral", "score": 0.0, "analyzed_headlines": 0}
+
+    # Load FinBERT
+    # On first run, it downloads ~400MB. Caches on subsequent runs.
+    try:
+        sentiment_pipeline = pipeline("sentiment-analysis", model="ProsusAI/finbert")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load FinBERT model: {e}")
+
+    results = sentiment_pipeline(headlines)
+    
+    # Quantify results: positive=+1, negative=-1, neutral=0
+    score = 0
+    bullish_count = 0
+    bearish_count = 0
+    
+    for r in results:
+        if r['label'] == 'positive':
+            score += 1 * r['score']
+            bullish_count += 1
+        elif r['label'] == 'negative':
+            score -= 1 * r['score']
+            bearish_count += 1
+            
+    avg_score = score / len(headlines)
+    
+    if avg_score > 0.15:
+        overall = "Bullish"
+    elif avg_score < -0.15:
+        overall = "Bearish"
+    else:
+        overall = "Neutral"
+
+    return {
+        "ticker": req.ticker,
+        "sentiment": overall,
+        "score_normalized": round(avg_score, 3),
+        "bullish_articles": bullish_count,
+        "bearish_articles": bearish_count,
+        "analyzed_headlines": len(headlines)
+    }
+
+
+@app.post("/crypto-risk", tags=["Market Risk"])
+def compute_crypto_risk(req: CryptoRiskRequest):
+    """
+    Fetch crypto pricing and historical volatility from CoinGecko's Free API,
+    and calculate Value at Risk (VaR).
+    """
+    try:
+        import requests
+    except ImportError:
+        raise HTTPException(status_code=503, detail="requests not installed")
+
+    # Fetch 90 days of price data
+    url = f"https://api.coingecko.com/api/v3/coins/{req.coin_id}/market_chart?vs_currency=usd&days=90"
+    headers = {'accept': 'application/json'}
+    resp = requests.get(url, headers=headers)
+    
+    if resp.status_code != 200:
+        raise HTTPException(status_code=400, detail=f"CoinGecko API error: {resp.text}")
+        
+    data = resp.json()
+    prices = [p[1] for p in data.get("prices", [])]
+    
+    if len(prices) < 30:
+        raise HTTPException(status_code=400, detail="Not enough price history for Var calculation")
+        
+    current_price = prices[-1]
+    
+    # Calculate daily returns
+    returns = np.diff(prices) / prices[:-1]
+    
+    # Historical Simulation VaR
+    # Find the (1-confidence) percentile of historical returns
+    threshold_return = np.percentile(returns, (1.0 - req.confidence) * 100)
+    
+    # Convert to monetary loss
+    var_amount = -threshold_return * req.portfolio_value
+    
+    # Annualized Volatility
+    daily_vol = np.std(returns)
+    annual_vol = daily_vol * math.sqrt(365) # Crypto trades 365 days a year
+
+    return {
+        "coin_id": req.coin_id,
+        "current_price_usd": round(current_price, 2),
+        "historical_var_amount": round(float(var_amount), 2),
+        "confidence_level": req.confidence,
+        "annualized_volatility_pct": round(annual_vol * 100, 2),
+        "portfolio_value_usd": req.portfolio_value
+    }
+
+
+@app.post("/export/pdf", tags=["Export"])
+def export_pdf_pitchbook(req: PitchbookRequest):
+    """
+    Generate a formatted 1-page PDF Executive Summary Pitchbook
+    using ReportLab and return it as a Base64 string.
+    """
+    try:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
+        from reportlab.lib import colors
+    except ImportError:
+        raise HTTPException(status_code=503, detail="reportlab not installed")
+        
+    import base64
+    from io import BytesIO
+    
+    buf = BytesIO()
+    c = canvas.Canvas(buf, pagesize=letter)
+    width, height = letter
+    
+    # Draw Header
+    c.setFillColor(colors.HexColor("#1e3a8a")) # Indigo/Blue
+    c.rect(0, height - 100, width, 100, fill=True, stroke=False)
+    
+    c.setFillColor(colors.white)
+    c.setFont("Helvetica-Bold", 24)
+    c.drawString(40, height - 50, f"Executive Risk Summary: {req.company_name}")
+    
+    c.setFont("Helvetica", 12)
+    c.drawString(40, height - 75, "VKKM Aegis Enterprise Intelligence (Generated via AI)")
+    
+    # Draw Content
+    c.setFillColor(colors.black)
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(40, height - 150, "Quantitative Metrics")
+    
+    c.setFont("Helvetica", 14)
+    
+    # Determine color for PD Score
+    c.setFillColor(colors.red if req.pd_score > 10 else colors.black)
+    c.drawString(60, height - 190, f"1-Year Probability of Default (ML): {req.pd_score}%")
+    
+    c.setFillColor(colors.black)
+    c.drawString(60, height - 230, f"99% Value at Risk (VaR): ${req.var_99:,.2f}")
+    
+    c.drawString(60, height - 270, f"Altman Z-Score: {req.z_score}")
+    
+    # Risk Zone Shield
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(40, height - 330, "Overall Risk Zone Integration")
+    
+    # Draw a colored box for the zone
+    zone_color = colors.green if req.risk_zone.lower() == 'safe' else (colors.yellow if req.risk_zone.lower() == 'grey' else colors.red)
+    c.setFillColor(zone_color)
+    c.roundRect(60, height - 420,  200, 50, 4, fill=True, stroke=False)
+    
+    c.setFillColor(colors.white if req.risk_zone.lower() == 'red' else colors.black)
+    c.setFont("Helvetica-Bold", 18)
+    c.drawCentredString(160, height - 405, req.risk_zone.upper())
+    
+    # Footer
+    c.setFillColor(colors.grey)
+    c.setFont("Helvetica-Oblique", 10)
+    c.drawString(40, 40, "CONFIDENTIAL – Not financial or legal advice. Calculated by VKKM Aegis.")
+    
+    c.save()
+    
+    buf.seek(0)
+    pdf_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    
+    company_safe = req.company_name.replace(' ', '_').replace('/', '_')
+    return {"pdf_base64": pdf_base64, "filename": f"{company_safe}_Risk_Pitchbook.pdf"}
 
 # ─── Entry point ────────────────────────────────────────────────────────────
 

@@ -11,6 +11,10 @@
         "vkkm-aegis:liquidity",
         "vkkm-aegis:market_data",
         "vkkm-aegis:ml_pd",
-        "vkkm-aegis:fetch_portfolio_sql"
+        "vkkm-aegis:fetch_portfolio_sql",
+        "vkkm-aegis:plot_monte_carlo",
+        "vkkm-aegis:sentiment_analysis",
+        "vkkm-aegis:crypto_risk",
+        "vkkm-aegis:generate_pitchbook"
     ]
 }

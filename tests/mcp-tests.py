@@ -65,6 +65,14 @@ try:
         PortfolioAsset,
         _simulate_portfolio_gbm,
         _compute_var_cvar,
+        PlotMonteCarloRequest,
+        SentimentRequest,
+        CryptoRiskRequest,
+        PitchbookRequest,
+        plot_monte_carlo,
+        get_sentiment,
+        compute_crypto_risk,
+        export_pdf_pitchbook
     )
     IMPORT_OK = True
     print("\n  ✅  mcp_server.py imported successfully")
@@ -250,6 +258,63 @@ if IMPORT_OK:
         bal += inflow - outflow
     # After M3: 500K + 35K - 40K - 40K = 455K
     assert_approx(bal, 455_000, 1, "3-month gap trace: balance ≈ €455,000")
+
+
+# ─── 6. Plot Monte Carlo Base64 ──────────────────────────────────────────────
+print("\n📈  PLOT MONTE CARLO (/plot/monte-carlo endpoint)")
+
+if IMPORT_OK:
+    req = PlotMonteCarloRequest(
+        assets=[PortfolioAsset(name="AAPL", weight=1.0, mu=0.1, sigma=0.2)],
+        portfolio_value=100000,
+        horizon_days=252,
+        simulations=100
+    )
+    res = plot_monte_carlo(req)
+    assert_true("image_base64" in res, "Returns image_base64 key")
+    assert_true(len(res["image_base64"]) > 1000, "Base64 string is populated")
+
+
+# ─── 7. Sentiment FinBERT ──────────────────────────────────────────────────────
+print("\n📰  FINBERT SENTIMENT (/sentiment endpoint)")
+
+if IMPORT_OK:
+    try:
+        req = SentimentRequest(ticker="AAPL")
+        res = get_sentiment(req)
+        assert_true(res["analyzed_headlines"] >= 0, "Sentiment analyzed headlines >= 0")
+        assert_true(res["sentiment"] in ["Bullish", "Bearish", "Neutral"], "Sentiment is valid")
+    except Exception as e:
+        print(f"  ⚠️  Skipping sentiment test due to error (likely first-run download): {e}")
+
+
+# ─── 8. Crypto Risk (CoinGecko) ──────────────────────────────────────────────────
+print("\n🪙  CRYPTO RISK (/crypto-risk endpoint)")
+
+if IMPORT_OK:
+    try:
+        req = CryptoRiskRequest(coin_id="bitcoin", portfolio_value=10000, confidence=0.99)
+        res = compute_crypto_risk(req)
+        assert_true("historical_var_amount" in res, "Returns historical_var_amount")
+        assert_true(res["current_price_usd"] > 0, "Bitcoin Price > 0")
+    except Exception as e:
+        print(f"  ⚠️  Skipping crypto test due to API networking error: {e}")
+
+
+# ─── 9. PDF Pitchbook Generator ──────────────────────────────────────────────────
+print("\n📄  PDF PITCHBOOK (/export/pdf endpoint)")
+
+if IMPORT_OK:
+    req = PitchbookRequest(
+        company_name="VKKM Testing",
+        pd_score=2.5,
+        var_99=15000,
+        z_score=3.1,
+        risk_zone="Safe"
+    )
+    res = export_pdf_pitchbook(req)
+    assert_true("pdf_base64" in res, "Returns pdf_base64 key")
+    assert_true(len(res["pdf_base64"]) > 500, "Base64 PDF string is populated")
 
 
 # ─── Summary ─────────────────────────────────────────────────────────────────

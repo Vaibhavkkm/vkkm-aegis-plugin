@@ -1,6 +1,6 @@
 {
     "name": "vkkm-aegis",
-    "version": "4.0.0",
+    "version": "5.0.0",
     "displayName": "VKKM Aegis (Risk Management CRO)",
     "description": "Enterprise Finance Risk Management Claude Plugin. Turn Claude into a Chief Risk Officer capable of quantitative multi-asset calculations (VaR), option Greeks, active ML models for default probabilities, and live enterprise SQL database integrations.",
     "icon": "icon.png",

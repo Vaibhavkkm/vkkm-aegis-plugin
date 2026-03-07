@@ -6,13 +6,16 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import axios from "axios";
+import fs from "fs";
+import os from "os";
+import path from "path";
 
 const API_BASE_URL = process.env.VKKM_API_URL || "https://vaibhavkkm-vkkm-aegis.hf.space";
 
 const server = new Server(
   {
     name: "vkkm-aegis",
-    version: "4.0.0",
+    version: "5.0.0",
   },
   {
     capabilities: {
@@ -168,6 +171,71 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["db_url", "query"],
         },
       },
+      {
+        name: "plot_monte_carlo",
+        description: "Run a Monte Carlo VaR simulation and get a Base64-encoded Matplotlib chart visualizing the paths.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            assets: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  weight: { type: "number" },
+                  mu: { type: "number" },
+                  sigma: { type: "number" },
+                },
+                required: ["name", "weight", "mu", "sigma"],
+              },
+            },
+            portfolio_value: { type: "number" },
+            horizon_days: { type: "number", default: 1 },
+            simulations: { type: "number", default: 1000 },
+          },
+          required: ["assets", "portfolio_value"],
+        },
+      },
+      {
+        name: "sentiment_analysis",
+        description: "Fetch live news headlines and run local FinBERT to calculate quantitative Bullish/Bearish sentiment.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            ticker: { type: "string" },
+          },
+          required: ["ticker"],
+        },
+      },
+      {
+        name: "crypto_risk",
+        description: "Calculate historic VaR & Volatility for crypto assets via CoinGecko.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            coin_id: { type: "string", description: "CoinGecko ID (bitcoin, ethereum, solana)" },
+            portfolio_value: { type: "number" },
+            confidence: { type: "number", default: 0.99 },
+          },
+          required: ["coin_id", "portfolio_value"],
+        },
+      },
+      {
+        name: "generate_pitchbook",
+        description: "Generate a formatted PDF Executive Summary Pitchbook and save it to the Desktop.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            company_name: { type: "string" },
+            pd_score: { type: "number" },
+            var_99: { type: "number" },
+            z_score: { type: "number" },
+            risk_zone: { type: "string" },
+          },
+          required: ["company_name", "pd_score", "var_99", "z_score", "risk_zone"],
+        },
+      },
     ],
   };
 });
@@ -210,6 +278,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case "fetch_portfolio_sql":
         endpoint = "/portfolio/sql";
         break;
+      case "plot_monte_carlo":
+        endpoint = "/plot/monte-carlo";
+        break;
+      case "sentiment_analysis":
+        endpoint = "/sentiment";
+        break;
+      case "crypto_risk":
+        endpoint = "/crypto-risk";
+        break;
+      case "generate_pitchbook":
+        endpoint = "/export/pdf";
+        break;
       default:
         throw new Error(`Unknown tool: ${request.params.name}`);
     }
@@ -220,6 +300,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       data,
       params,
     });
+
+    if (request.params.name === "plot_monte_carlo" && response.data.image_base64) {
+      return {
+        content: [
+          {
+            type: "image",
+            data: response.data.image_base64,
+            mimeType: "image/png"
+          }
+        ],
+      };
+    }
+
+    if (request.params.name === "generate_pitchbook" && response.data.pdf_base64) {
+      const desktopPath = path.join(os.homedir(), 'Desktop', response.data.filename);
+      const pdfBuffer = Buffer.from(response.data.pdf_base64, 'base64');
+      fs.writeFileSync(desktopPath, pdfBuffer);
+      
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Pitchbook successfully generated and saved to your Desktop: ${desktopPath}`
+          }
+        ],
+      };
+    }
 
     return {
       content: [
