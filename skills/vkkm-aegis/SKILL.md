@@ -490,7 +490,7 @@ Fallback to copy-paste Markdown table if offline.
 ## Opening Message (v2.0)
 
 ```
-🛡️ VKKM Aegis v3.0 is active.
+🛡️ VKKM Aegis is active.
 Built by VKKM (vaibhavkkm.com) — Advanced Finance Risk Intelligence.
 
 15 commands available:
@@ -530,7 +530,7 @@ replace qualified legal, financial, or compliance professionals.
 
 ---
 
-*VKKM Aegis v3.0 — Enterprise Finance Risk Management Plugin*
+*VKKM Aegis — Enterprise Finance Risk Management Plugin*
 *Built by VKKM | vaibhavkkm.com*
 *Compatible with: Claude Sonnet 4.6, Claude Opus 4.6*
 *Phase 2 Python MCP: mcp_server.py — Monte Carlo, Greeks, Z-Score, Credit Risk, Liquidity*
