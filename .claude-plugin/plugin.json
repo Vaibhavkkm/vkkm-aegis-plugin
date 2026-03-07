@@ -3,8 +3,8 @@
     "name": "VKKM Aegis",
     "author": "VKKM",
     "website": "https://vaibhavkkm.com",
-    "version": "1.1",
-    "description": "Expert Risk Management AI assistant. Identifies, assesses, documents, and mitigates risk across contracts, finances, projects, regulations, and business decisions.",
+    "version": "2.0",
+    "description": "Advanced Finance Risk Management AI assistant. Covers market risk, credit risk, liquidity risk, operational risk, and regulatory compliance — with quantitative models including Monte Carlo VaR, Black-Scholes Greeks, and Altman Z-Score.",
     "trustworthiness_rating": "8.5/10",
     "compatible_models": [
         "claude-sonnet-4-6",
@@ -16,7 +16,16 @@
         "/vkkm:risk-register",
         "/vkkm:regulatory-check",
         "/vkkm:escalation-report",
-        "/vkkm:counterparty-profile"
+        "/vkkm:counterparty-profile",
+        "/vkkm:zscore",
+        "/vkkm:greeks",
+        "/vkkm:var-calc",
+        "/vkkm:credit-risk",
+        "/vkkm:liquidity-risk",
+        "/vkkm:icaap",
+        "/vkkm:rcsa",
+        "/vkkm:kri-dashboard",
+        "/vkkm:reg-calendar"
     ],
     "command_specs": [
         {
@@ -54,14 +63,71 @@
             "spec_file": "commands/counterparty-profile.md",
             "reliability": "7.5/10",
             "description": "Research and risk-score a company or individual before entering a business relationship"
+        },
+        {
+            "command": "/vkkm:zscore",
+            "spec_file": "commands/zscore.md",
+            "reliability": "9/10",
+            "description": "Calculate Altman Z-Score to assess bankruptcy probability within 2 years — step-by-step workings shown"
+        },
+        {
+            "command": "/vkkm:greeks",
+            "spec_file": "commands/greeks.md",
+            "reliability": "9/10",
+            "description": "Calculate all 5 Black-Scholes option Greeks for any European call or put — exact formula, not an estimate"
+        },
+        {
+            "command": "/vkkm:var-calc",
+            "spec_file": "commands/var-calc.md",
+            "reliability": "8.5/10",
+            "description": "Monte Carlo VaR and CVaR engine — 10,000 GBM paths via Python MCP, or parametric fallback"
+        },
+        {
+            "command": "/vkkm:credit-risk",
+            "spec_file": "commands/credit-risk.md",
+            "reliability": "8.5/10",
+            "description": "Calculate PD, EAD, LGD, Expected Loss, and Unexpected Loss under the Basel credit risk framework"
+        },
+        {
+            "command": "/vkkm:liquidity-risk",
+            "spec_file": "commands/liquidity-risk.md",
+            "reliability": "8/10",
+            "description": "Analyse LCR, NSFR, cash runway, and build a 12-month cash flow gap table"
+        },
+        {
+            "command": "/vkkm:icaap",
+            "spec_file": "commands/icaap.md",
+            "reliability": "8.5/10",
+            "description": "Generate a structured ICAAP document — 7 sections, aligned to EBA guidelines under Basel III/IV Pillar 2"
+        },
+        {
+            "command": "/vkkm:rcsa",
+            "spec_file": "commands/rcsa.md",
+            "reliability": "9/10",
+            "description": "Risk and Control Self-Assessment — inherent risk, controls, residual risk, and gap identification per process"
+        },
+        {
+            "command": "/vkkm:kri-dashboard",
+            "spec_file": "commands/kri-dashboard.md",
+            "reliability": "8/10",
+            "description": "Build a Key Risk Indicator dashboard with Green/Amber/Red thresholds and RAG status tracking"
+        },
+        {
+            "command": "/vkkm:reg-calendar",
+            "spec_file": "commands/reg-calendar.md",
+            "reliability": "7.5/10",
+            "description": "Compile upcoming regulatory reporting deadlines for the next 12 months — web-search grounded"
         }
     ],
     "skills": [
-        "Auto Risk Scoring (5x5 matrix — every response)",
-        "EU Regulatory Awareness (GDPR, MiFID II, DORA, Basel III/IV, PSD2, NIS2, EMIR)",
+        "Auto Risk Scoring (5×5 matrix — every response)",
+        "EU & Global Regulatory Awareness (GDPR, MiFID II, DORA, Basel III/IV, PSD2, NIS2, EMIR, SFDR, IFRS 9)",
         "Contract Risk Pattern Recognition",
         "Financial Risk Intelligence (VaR, Monte Carlo, GBM, stress testing)",
-        "Plain-Language Explainer (auto-define technical terms)"
+        "Credit Risk Models (Altman Z-Score, PD, LGD, EAD — Basel framework)",
+        "Options Theory (Black-Scholes, all 5 Greeks — exact formulas)",
+        "Regulatory Document Generation (ICAAP, RCSA, KRI — EBA aligned)",
+        "Plain-Language Explainer (auto-define technical terms on first use)"
     ],
     "skills_paths": [
         "skills/risk-scoring.md",
@@ -69,12 +135,16 @@
         "skills/contract-patterns.md",
         "skills/financial-risk.md",
         "skills/plain-language.md",
-        "skills/disclaimers.md"
+        "skills/disclaimers.md",
+        "skills/credit-models.md",
+        "skills/options-theory.md",
+        "skills/regulatory-docs.md"
     ],
     "system_prompt_path": "skills/risk-management/SKILL.md",
-    "system_prompt": "You are VKKM Aegis, an expert Risk Management AI assistant built by VKKM. Your purpose is to protect users from risk — in contracts, finances, projects, regulations, and business decisions. Always attach the AEGIS RISK SNAPSHOT to every risk-related response. Never give legal or investment advice. See skills/risk-management/SKILL.md for the complete system prompt.",
-    "opening_message": "🛡️ VKKM Aegis is active.\nBuilt by VKKM (vaibhavkkm.com) — Your shield against risk.\n\nI help you identify, assess, and manage risk across contracts,\nprojects, finances, and regulatory compliance.\n\nCommands:\n  /vkkm:scan-document        Analyze a contract or document for red flags\n  /vkkm:stress-test          Simulate financial or business shock scenarios\n  /vkkm:risk-register        Build a complete structured risk register\n  /vkkm:regulatory-check     Screen for EU/global regulatory compliance gaps\n  /vkkm:escalation-report    Write a professional risk escalation memo\n  /vkkm:counterparty-profile Research a supplier, client, or partner\n\nOr describe your situation in plain language and I'll assess\nthe risk automatically — no command needed.\n\n⚠️  VKKM Aegis supports human decision-making but does not replace\nlegal, financial, or compliance professionals. Always seek expert\nreview for high-stakes decisions.",
+    "system_prompt": "You are VKKM Aegis v2.0, an advanced Finance Risk Management AI assistant built by VKKM. Named after the divine shield in Greek mythology, your purpose is to protect finance professionals, students, founders, and analysts from financial, regulatory, operational, credit, and market risk. You combine quantitative finance (Monte Carlo, Black-Scholes, GBM, VaR, CVaR), credit risk models (Altman Z-Score, PD, LGD), regulatory frameworks (Basel III/IV, DORA, GDPR, MiFID II), operational risk (ISO 31000, RCSA, KRI), and document risk (ICAAP, contract analysis). Always append the AEGIS RISK SNAPSHOT to every risk-related response. Never give legal or investment advice. See skills/risk-management/SKILL.md for the complete system prompt.",
+    "opening_message": "🛡️ VKKM Aegis v2.0 is active.\nBuilt by VKKM (vaibhavkkm.com) — Advanced Finance Risk Intelligence.\n\n15 commands available:\n\nMARKET RISK:\n  /vkkm:stress-test          Simulate financial shocks\n  /vkkm:var-calc             Monte Carlo VaR & CVaR\n  /vkkm:greeks               Black-Scholes options Greeks\n\nCREDIT RISK:\n  /vkkm:zscore               Altman Z-Score bankruptcy predictor\n  /vkkm:credit-risk          PD, EAD, LGD, Expected Loss\n  /vkkm:counterparty-profile Supplier/partner due diligence\n\nOPERATIONAL RISK:\n  /vkkm:risk-register        ISO 31000 risk register\n  /vkkm:rcsa                 Risk & Control Self-Assessment\n  /vkkm:kri-dashboard        KRI monitoring dashboard\n  /vkkm:escalation-report    Risk escalation memos\n\nLIQUIDITY RISK:\n  /vkkm:liquidity-risk       LCR, cash runway, gap analysis\n\nREGULATORY:\n  /vkkm:regulatory-check     EU/global compliance screening\n  /vkkm:reg-calendar         Regulatory reporting deadlines\n  /vkkm:icaap                ICAAP document generator\n\nCONTRACTS:\n  /vkkm:scan-document        Contract risk scanner\n\nOr describe your situation and I'll assess risk automatically.\n\n⚠️ VKKM Aegis supports professional decision-making but does not\nreplace qualified legal, financial, or compliance professionals.",
+    "python_mcp_server": "mcp_server.py",
     "created": "2026-03-06",
     "updated": "2026-03-06",
-    "standard": "ISO 31000"
+    "standard": "ISO 31000 | Basel III/IV | EBA Guidelines"
 }

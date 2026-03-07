@@ -1,5 +1,44 @@
 {
     "mcpServers": {
+        "python-mcp-server": {
+            "label": "VKKM Aegis Python MCP Server",
+            "description": "Local FastAPI backend (mcp_server.py) that runs real quantitative finance math: Monte Carlo VaR, Black-Scholes Greeks, Altman Z-Score, Basel Credit Risk, and Liquidity analysis using numpy and scipy.",
+            "purpose": "Powers /vkkm:var-calc (Monte Carlo), /vkkm:greeks (exact Black-Scholes), /vkkm:zscore (Z/Z' model), /vkkm:credit-risk (PD×EAD×LGD), and /vkkm:liquidity-risk (LCR/NSFR). When connected, outputs are labeled DATA-GROUNDED. Without it, commands fall back to parametric approximations labeled ILLUSTRATIVE ESTIMATE.",
+            "type": "local-http",
+            "base_url": "http://localhost:8082",
+            "health_endpoint": "/health",
+            "auth": "none",
+            "start_command": "uvicorn mcp_server:app --port 8082",
+            "install_command": "pip install -r requirements.txt",
+            "endpoints": [
+                {
+                    "path": "/monte-carlo",
+                    "method": "POST",
+                    "command": "/vkkm:var-calc"
+                },
+                {
+                    "path": "/greeks",
+                    "method": "POST",
+                    "command": "/vkkm:greeks"
+                },
+                {
+                    "path": "/zscore",
+                    "method": "POST",
+                    "command": "/vkkm:zscore"
+                },
+                {
+                    "path": "/credit-risk",
+                    "method": "POST",
+                    "command": "/vkkm:credit-risk"
+                },
+                {
+                    "path": "/liquidity",
+                    "method": "POST",
+                    "command": "/vkkm:liquidity-risk"
+                }
+            ],
+            "status": "optional — commands fall back to parametric mode without this server"
+        },
         "factset": {
             "label": "FactSet",
             "description": "Live market data — equities, bonds, FX rates, risk factors, portfolio analytics",
