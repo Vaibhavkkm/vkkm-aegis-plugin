@@ -16,7 +16,7 @@ regulators globally for daily risk reporting.
 quantify the worst-case loss their portfolio might suffer over a given time horizon.
 
 **Two operating modes:**
-- **Python MCP connected** → 10,000 GBM simulation paths (full Monte Carlo)
+- **Python MCP connected** → 1,000,000 GBM simulation paths (full Monte Carlo)
 - **No MCP connector** → Parametric approximation with delta-normal method (labelled ILLUSTRATIVE)
 
 ---

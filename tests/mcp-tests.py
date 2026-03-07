@@ -184,7 +184,7 @@ if IMPORT_OK:
         PortfolioAsset(name="Bonds",    weight=0.4, mu=0.03, sigma=0.06),
     ]
     portfolio_value = 100_000
-    simulations = 10_000
+    simulations = 1_000_000
 
     pnl = _simulate_portfolio_gbm(
         assets=assets,
@@ -210,7 +210,7 @@ if IMPORT_OK:
     assert_true(cvar99 < var99 * 3,                "CVaR < 3 × VaR (within reasonable range)")
 
     # Check array length — one P&L per simulation path.
-    assert_equal(len(pnl), simulations,            "P&L array has 10,000 entries")
+    assert_equal(len(pnl), simulations,            "P&L array has 1,000,000 entries")
 
 
 # ─── 4. Credit Risk (direct formula check) ────────────────────────────────────

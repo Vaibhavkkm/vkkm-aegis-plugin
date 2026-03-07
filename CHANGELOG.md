@@ -49,7 +49,7 @@
 
 ### Python MCP Server (Phase 2)
 - `mcp_server.py` — FastAPI backend with 5 quantitative endpoints using real numpy/scipy math
-  - `POST /monte-carlo` — 10,000-path GBM simulation → VaR + CVaR with risk contribution per asset
+  - `POST /monte-carlo` — 1,000,000-path GBM simulation → VaR + CVaR with risk contribution per asset
   - `POST /greeks` — Exact Black-Scholes Greeks using `scipy.stats.norm`
   - `POST /zscore` — Altman Z/Z' model with zone classification
   - `POST /credit-risk` — EL = PD × EAD × LGD, UL, and break-even spread

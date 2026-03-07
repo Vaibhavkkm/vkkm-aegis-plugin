@@ -25,7 +25,7 @@ Why trust an AI with your company's risk? Because Aegis isn't just generating te
 We realized that "Advanced" wasn't enough for institutional users. The v3.0 release bridges the gap between conversational AI and enterprise financial systems:
 
 1. **Live Market Data (`yfinance` via MCP)**
-   Aegis now pulls real-time closing prices, 30-day/1-year rolling realized volatility, and the 3-month US T-bill risk-free rate automatically. When you run a VaR simulation or price an option, Aegis grounds its math in today's actual market reality.
+   Aegis now pulls real-time closing prices, 30-day/1-year rolling realized volatility, and the 3-month US T-bill risk-free rate automatically. When you run 1,000,000-path GBM simulation or price an option, Aegis grounds its math in today's actual market reality.
    
 2. **Machine Learning Probability of Default (ML-PD)**
    We moved beyond the static 1968 Altman Z-Score. Aegis now features a `scikit-learn` Logistic Regression engine trained on a calibrated corporate dataset. It predicts the true 1-year Probability of Default complete with **95% Confidence Intervals**.

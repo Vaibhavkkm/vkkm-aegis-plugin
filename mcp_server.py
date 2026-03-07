@@ -6,7 +6,7 @@ A FastAPI backend that powers the quantitative calculation, live data,
 ML modeling, and export endpoints for the VKKM Aegis Claude plugin.
 
 Phase 2 endpoints (v2.0):
-  POST /monte-carlo  — 10,000-path GBM simulation → VaR + CVaR
+  POST /monte-carlo  — 1,000,000-path GBM simulation → VaR + CVaR
   POST /greeks       — Exact Black-Scholes Greeks (δ, γ, ν, θ, ρ)
   POST /zscore       — Altman Z-Score (public Z model + private Z' model)
   POST /credit-risk  — PD × EAD × LGD → Expected & Unexpected Loss
@@ -109,7 +109,7 @@ class MonteCarloRequest(BaseModel):
     portfolio_value: float = Field(..., gt=0.0, description="Total portfolio value in base currency")
     horizon_days: int = Field(1, ge=1, le=252, description="Horizon in trading days (1 = 1-day VaR)")
     confidence: float = Field(0.99, ge=0.90, le=0.999, description="Confidence level (e.g. 0.99 for 99% VaR)")
-    simulations: int = Field(10_000, ge=1_000, le=100_000, description="Number of GBM simulation paths")
+    simulations: int = Field(1_000_000, ge=1_000, le=10_000_000, description="Number of GBM simulation paths")
     correlation: Optional[float] = Field(None, description="Pairwise correlation (simplified — for 2-asset portfolios)")
 
 

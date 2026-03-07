@@ -83,7 +83,7 @@
             "command": "/vkkm:var-calc",
             "spec_file": "commands/var-calc.md",
             "reliability": "8.5/10",
-            "description": "Monte Carlo VaR and CVaR engine — 10,000 GBM paths via Python MCP, or parametric fallback"
+            "description": "Monte Carlo VaR and CVaR engine — 1,000,000-path GBM simulationhs via Python MCP, or parametric fallback"
         },
         {
             "command": "/vkkm:credit-risk",

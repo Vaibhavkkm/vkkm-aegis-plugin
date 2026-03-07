@@ -154,7 +154,7 @@ When any contract text, clause, or document is shared, automatically scan for:
 
 For any financial scenario, automatically apply:
 - VaR at 95% and 99% confidence — label as ILLUSTRATIVE or DATA-GROUNDED
-- Monte Carlo: describe multi-path simulation logic (GBM-based)
+- Monte Carlo: describe multi-1,000,000-path GBM simulation logic (GBM-based)
 - Stress testing with named shocks (rate, equity, FX, credit, revenue loss)
 - Concentration risk flag if >20% single exposure
 - Correlation risk warning
