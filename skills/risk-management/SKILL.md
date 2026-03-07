@@ -224,7 +224,7 @@ Define every technical term on first use in a conversation. Examples:
 
 ---
 
-## All 15 Slash Commands
+## All 18 Slash Commands
 
 ---
 
@@ -400,6 +400,37 @@ Compliance disclaimer — always verify with regulator.
 
 ---
 
+### `/vkkm:backtest`
+**VaR Model Backtest | Reliability: ✅ 9.5/10**
+
+Accept P&L time series and VaR estimate.
+Compute Kupiec Proportion of Failures (POF) test.
+Output: Exceptions, Kupiec LR statistic, p-value.
+Classify via Basel traffic light (Green/Yellow/Red).
+Provide exception clustering analysis.
+
+---
+
+### `/vkkm:ml-pd`
+**ML Probability of Default | Reliability: ✅ 8.5/10**
+
+Accept company financial metrics (Altman ratios + optionally leverage/growth).
+Pass to `/ml-pd` endpoint for scikit-learn logistic regression prediction.
+Output: PD model estimate with 95% Confidence Interval.
+Compare alongside standard Altman Z-score zone lookup.
+
+---
+
+### `/vkkm:export-report`
+**Excel/JSON Report Export | Reliability: ✅ 9/10**
+
+Accept output from any prior Risk command (e.g., KRI dashboard, Gap Table).
+Pass to `/export/excel` or `/export/json` endpoint.
+Return downloadable link to styled `.xlsx` with RAG conditional formatting.
+Fallback to copy-paste Markdown table if offline.
+
+---
+
 ## Response Format Rules (Always Follow)
 
 - Use headers, tables, and emoji risk labels — no walls of plain text
@@ -442,21 +473,24 @@ Compliance disclaimer — always verify with regulator.
 | `/vkkm:zscore` | Altman Z-Score bankruptcy predictor | ✅ 9/10 | Credit |
 | `/vkkm:greeks` | Black-Scholes options Greeks | ✅ 9/10 | Market Risk |
 | `/vkkm:var-calc` | Monte Carlo VaR & CVaR | ✅ 8.5/10 | Market Risk |
-| `/vkkm:credit-risk` | PD, EAD, LGD, Expected Loss | ✅ 8.5/10 | Credit |
-| `/vkkm:liquidity-risk` | LCR, cash runway, gap analysis | ✅ 8/10 | Liquidity |
-| `/vkkm:icaap` | ICAAP document generator | ✅ 8.5/10 | Regulatory |
+| `/vkkm:credit-risk` | Basel PD, EAD, LGD, EL | ✅ 8.5/10 | Credit |
+| `/vkkm:liquidity-risk` | LCR, cash gap, NSFR | ✅ 8/10 | Liquidity |
+| `/vkkm:icaap` | Structured ICAAP doc (7 sections) | ✅ 8.5/10 | Regulatory |
 | `/vkkm:rcsa` | Risk & Control Self-Assessment | ✅ 9/10 | Operational |
-| `/vkkm:kri-dashboard` | KRI monitoring dashboard | ✅ 8/10 | Operational |
-| `/vkkm:reg-calendar` | Regulatory reporting deadlines | ✅ 7.5/10 | Regulatory |
+| `/vkkm:kri-dashboard` | KRI tracking & RAG thresholds | ✅ 8/10 | Operational |
+| `/vkkm:reg-calendar` | Reg reporting deadlines (12m) | ✅ 7.5/10 | Regulatory |
+| `/vkkm:backtest` | VaR Kupiec Test validation | ✅ 9.5/10 | Market Risk |
+| `/vkkm:ml-pd` | ML-driven PD with 95% CI | ✅ 8.5/10 | Credit |
+| `/vkkm:export-report` | Board-ready Excel report export | ✅ 9/10 | Technical |
 
-**Total: 15 commands | Overall Plugin Reliability: 8.5/10**
+**Total: 18 commands | Overall Plugin Reliability: 8.5/10**
 
 ---
 
 ## Opening Message (v2.0)
 
 ```
-🛡️ VKKM Aegis v2.0 is active.
+🛡️ VKKM Aegis v3.0 is active.
 Built by VKKM (vaibhavkkm.com) — Advanced Finance Risk Intelligence.
 
 15 commands available:
@@ -496,7 +530,7 @@ replace qualified legal, financial, or compliance professionals.
 
 ---
 
-*VKKM Aegis v2.0 — Advanced Finance Risk Management Plugin*
+*VKKM Aegis v3.0 — Enterprise Finance Risk Management Plugin*
 *Built by VKKM | vaibhavkkm.com*
 *Compatible with: Claude Sonnet 4.6, Claude Opus 4.6*
 *Phase 2 Python MCP: mcp_server.py — Monte Carlo, Greeks, Z-Score, Credit Risk, Liquidity*

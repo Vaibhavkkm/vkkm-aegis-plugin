@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * VKKM Aegis v2.0 — Validation Suite
+ * VKKM Aegis v3.0 — Validation Suite
  * Built by VKKM (vaibhavkkm.com)
  *
  * Run with: npm test
@@ -8,18 +8,21 @@
  * Checks that:
  *   1. Every required file exists on disk
  *   2. Every JSON file is valid JSON
- *   3. plugin.json has all v2.0 fields and all 15 commands
- *   4. .mcp.json has all 5 data connectors
+ *   3. plugin.json has all v3.0 fields and all 18 commands
+ *   4. .mcp.json has all data connectors
  *   5. Every command spec file has the four required sections
  *   6. Every skill file has its key content
- *   7. The master SKILL.md prompt references all 15 commands
+ *   7. The master SKILL.md prompt references all 18 commands
  *   8. The two canonical SKILL.md copies are byte-for-byte identical
  *   9. Every disclaimer type is present in disclaimers.md
  *  10. The 5x5 risk scoring thresholds are internally consistent
- *  11. Command-specific content spot-checks for all 15 commands
+ *  11. Command-specific content spot-checks for all 18 commands
  *  12. EU regulations coverage is accurate and complete
- *  13. New v2.0 skill files have their key content
+ *  13. v2.0 and v3.0 skill files have their key content
  *  14. Python MCP server file and requirements.txt exist
+ *  15. v3.0 data modules (live_data.py, backtest.py, ml_pd_model.py, excel_export.py) exist
+ *  16. Synthetic default dataset CSV exists
+ *  17. v3.0 MCP endpoints referenced in mcp_server.py
  *
  * No npm packages required — plain Node.js only.
  */
@@ -49,7 +52,7 @@ const REQUIRED_FILES = [
   'commands/escalation-report.md',
   'commands/counterparty-profile.md',
 
-  // New v2.0 commands (9)
+  // v2.0 commands (9)
   'commands/zscore.md',
   'commands/greeks.md',
   'commands/var-calc.md',
@@ -60,6 +63,11 @@ const REQUIRED_FILES = [
   'commands/kri-dashboard.md',
   'commands/reg-calendar.md',
 
+  // v3.0 commands (3)
+  'commands/backtest.md',
+  'commands/ml-pd.md',
+  'commands/export-report.md',
+
   // Original v1.0 skills (6)
   'skills/risk-scoring.md',
   'skills/eu-regulations.md',
@@ -68,7 +76,7 @@ const REQUIRED_FILES = [
   'skills/plain-language.md',
   'skills/disclaimers.md',
 
-  // New v2.0 skills (3)
+  // v2.0 skills (3)
   'skills/credit-models.md',
   'skills/options-theory.md',
   'skills/regulatory-docs.md',
@@ -81,6 +89,15 @@ const REQUIRED_FILES = [
   'mcp_server.py',
   'requirements.txt',
 
+  // v3.0 data modules
+  'data/__init__.py',
+  'data/live_data.py',
+  'data/backtest.py',
+  'data/generate_dataset.py',
+  'data/ml_pd_model.py',
+  'data/excel_export.py',
+  'data/synthetic_default_dataset.csv',
+
   // Project metadata
   'README.md',
   'CHANGELOG.md',
@@ -88,7 +105,7 @@ const REQUIRED_FILES = [
   '.gitignore',
 ];
 
-// All 15 slash commands that must be registered in plugin.json.
+// All 18 slash commands that must be registered in plugin.json.
 const REQUIRED_SLASH_COMMANDS = [
   '/vkkm:scan-document',
   '/vkkm:stress-test',
@@ -105,6 +122,10 @@ const REQUIRED_SLASH_COMMANDS = [
   '/vkkm:rcsa',
   '/vkkm:kri-dashboard',
   '/vkkm:reg-calendar',
+  // v3.0 new commands
+  '/vkkm:backtest',
+  '/vkkm:ml-pd',
+  '/vkkm:export-report',
 ];
 
 // The five MCP data connectors that must be configured.
@@ -232,16 +253,16 @@ function testPluginJson(pluginJson) {
   if (!pluginJson) { assert(false, 'plugin.json parsed — skipping field tests'); return; }
 
   assert(pluginJson.name === 'VKKM Aegis', 'name = "VKKM Aegis"');
-  assert(pluginJson.version === '2.0', 'version = "2.0"');
+  assert(pluginJson.version === '3.0', 'version = "3.0"');
   assert(typeof pluginJson.author === 'string' && pluginJson.author.length > 0, 'author is present');
   assert(typeof pluginJson.description === 'string' && pluginJson.description.length >= 20, 'description ≥ 20 chars');
   assert(typeof pluginJson.system_prompt_path === 'string', 'system_prompt_path is present');
   assert(Array.isArray(pluginJson.slash_commands), 'slash_commands is an array');
 
-  // All 15 commands must be registered.
+  // All 18 commands must be registered.
   assert(
-    Array.isArray(pluginJson.slash_commands) && pluginJson.slash_commands.length >= 15,
-    'slash_commands has ≥ 15 entries',
+    Array.isArray(pluginJson.slash_commands) && pluginJson.slash_commands.length >= 18,
+    'slash_commands has ≥ 18 entries',
     `found ${pluginJson.slash_commands?.length ?? 0}`
   );
 

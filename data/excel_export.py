@@ -1,0 +1,517 @@
+#!/usr/bin/env python3
+"""
+VKKM Aegis — Excel & JSON Export Engine (Phase 3)
+==================================================
+Generates professionally formatted .xlsx reports from risk analysis data.
+Used by the POST /export/excel endpoint to deliver board-ready outputs.
+
+Reporting types supported:
+  - KRI Dashboard    : RAG colour-coded KRI monitoring table
+  - Cash Flow Gap    : Month-by-month gap table with red-flagged shortfalls
+  - Credit Risk      : EL/UL/spread breakdown with risk rating
+  - Risk Register    : ISO 31000 format with scoring, owners, and treatments
+  - Backtest Report  : Kupiec test results and exception analysis
+
+All exports follow a consistent style guide:
+  - Header row: Dark navy (#1B2A4A) background, white bold text
+  - Green cells: #C6EFCE / dark green text (RAG Green)
+  - Amber cells: #FFEB9C / dark orange text (RAG Amber)
+  - Red cells:   #FFC7CE / dark red text (RAG Red)
+  - Auto column widths, freeze panes on row 1
+
+Author : VKKM (vaibhavkkm.com)
+Version: 3.0
+"""
+
+import io
+import logging
+from datetime import datetime
+from typing import Optional, List
+
+logger = logging.getLogger(__name__)
+
+# openpyxl is a somewhat hefty dependency so it's optional. 
+# We degrade gracefully if it fails to import.
+try:
+    import openpyxl
+    from openpyxl.styles import (
+        PatternFill, Font, Alignment, Border, Side, numbers
+    )
+    from openpyxl.utils import get_column_letter
+    OPENPYXL_AVAILABLE = True
+except ImportError:
+    OPENPYXL_AVAILABLE = False
+    logger.warning(
+        "openpyxl not installed — Excel export unavailable. "
+        "Run: pip install openpyxl>=3.1.0"
+    )
+
+
+# ─── Colour palette ──────────────────────────────────────────────────────────
+
+class _Colours:
+    """Hard-coded colour constants matching the VKKM Aegis colour system."""
+    HEADER_BG   = "1B2A4A"  # Dark navy
+    HEADER_FG   = "FFFFFF"  # White
+
+    GREEN_BG    = "C6EFCE"
+    GREEN_FG    = "276221"
+
+    AMBER_BG    = "FFEB9C"
+    AMBER_FG    = "9C6500"
+
+    RED_BG      = "FFC7CE"
+    RED_FG      = "9C0006"
+
+    NEUTRAL_BG  = "F2F2F2"  # Light grey for alternating rows
+    BRAND_BG    = "E8EEF7"  # Light navy tint for subtitle rows
+
+
+def _fill(hex_color: str) -> "PatternFill":
+    """Return a solid fill with the given hex colour."""
+    return PatternFill(fill_type="solid", fgColor=hex_color)
+
+
+def _bold_font(size: int = 11, color: str = "000000") -> "Font":
+    return Font(bold=True, size=size, color=color)
+
+
+def _header_font() -> "Font":
+    return Font(bold=True, size=11, color=_Colours.HEADER_FG)
+
+
+def _thin_border() -> "Border":
+    side = Side(border_style="thin", color="CCCCCC")
+    return Border(left=side, right=side, top=side, bottom=side)
+
+
+def _rag_fill(rag: str) -> "PatternFill":
+    """Return the correct fill for a Green/Amber/Red string."""
+    rag = str(rag).strip().lower()
+    if "green" in rag or "🟢" in rag:
+        return _fill(_Colours.GREEN_BG)
+    elif "amber" in rag or "yellow" in rag or "🟡" in rag:
+        return _fill(_Colours.AMBER_BG)
+    elif "red" in rag or "🔴" in rag:
+        return _fill(_Colours.RED_BG)
+    return _fill(_Colours.NEUTRAL_BG)
+
+
+def _rag_font(rag: str) -> "Font":
+    """Return the correct font colour for a Green/Amber/Red string."""
+    rag = str(rag).strip().lower()
+    if "green" in rag or "🟢" in rag:
+        return Font(color=_Colours.GREEN_FG, bold=True, size=11)
+    elif "amber" in rag or "yellow" in rag or "🟡" in rag:
+        return Font(color=_Colours.AMBER_FG, bold=True, size=11)
+    elif "red" in rag or "🔴" in rag:
+        return Font(color=_Colours.RED_FG, bold=True, size=11)
+    return Font(size=11)
+
+
+def _set_header_row(ws, headers: list, row: int = 1) -> None:
+    """Write a styled header row to worksheet `ws` at the given row number."""
+    for col_idx, header in enumerate(headers, start=1):
+        cell = ws.cell(row=row, column=col_idx, value=header)
+        cell.fill   = _fill(_Colours.HEADER_BG)
+        cell.font   = _header_font()
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = _thin_border()
+
+
+def _auto_column_widths(ws, min_width: int = 12, max_width: int = 45) -> None:
+    """
+    Hack to roughly auto-size column widths based on the longest cell string.
+    Not pixel-perfect because we don't know the exact font metrics, 
+    but stops text from getting completely cut off.
+    """
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            try:
+                if cell.value:
+                    max_len = max(max_len, len(str(cell.value)))
+            except Exception:
+                pass
+        ws.column_dimensions[col_letter].width = max(min(max_len + 4, max_width), min_width)
+
+
+def _add_branding_footer(ws, row: int) -> None:
+    """Add a VKKM Aegis branding footer at the given row."""
+    ws.cell(row=row, column=1).value = (
+        f"Generated by VKKM Aegis v3.0 — vaibhavkkm.com | {datetime.now().strftime('%d %b %Y %H:%M')}"
+    )
+    ws.cell(row=row, column=1).font = Font(italic=True, size=9, color="888888")
+    ws.cell(row=row, column=1).alignment = Alignment(horizontal="left")
+
+
+# ─── Report generators ────────────────────────────────────────────────────────
+
+def generate_kri_excel(kri_data: list) -> bytes:
+    """
+    Generate a KRI Dashboard Excel report with RAG colour-coding.
+
+    kri_data: list of dicts with keys:
+        kri_name, category, current_value, green_threshold, amber_threshold,
+        red_threshold, rag_status, unit, owner, frequency
+
+    Returns raw .xlsx bytes ready to stream in an HTTP response.
+    """
+    if not OPENPYXL_AVAILABLE:
+        raise RuntimeError("openpyxl not installed. Run: pip install openpyxl>=3.1.0")
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "KRI Dashboard"
+
+    # Title block.
+    ws.merge_cells("A1:J1")
+    ws["A1"].value = "🛡️ VKKM Aegis — KRI Dashboard"
+    ws["A1"].font  = Font(bold=True, size=14, color="1B2A4A")
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 30
+
+    ws.merge_cells("A2:J2")
+    ws["A2"].value = f"Generated: {datetime.now().strftime('%d %b %Y %H:%M')}"
+    ws["A2"].font  = Font(italic=True, size=10, color="555555")
+    ws["A2"].alignment = Alignment(horizontal="center")
+    ws["A2"].fill  = _fill(_Colours.BRAND_BG)
+
+    headers = [
+        "KRI Name", "Category", "Current Value", "Unit",
+        "Green Threshold", "Amber Threshold", "Red Threshold",
+        "RAG Status", "Owner", "Review Frequency"
+    ]
+    _set_header_row(ws, headers, row=3)
+    ws.freeze_panes = "A4"
+
+    for row_idx, kri in enumerate(kri_data, start=4):
+        rag = str(kri.get("rag_status", ""))
+        values = [
+            kri.get("kri_name",        "—"),
+            kri.get("category",        "—"),
+            kri.get("current_value",   "—"),
+            kri.get("unit",            "—"),
+            kri.get("green_threshold", "—"),
+            kri.get("amber_threshold", "—"),
+            kri.get("red_threshold",   "—"),
+            rag,
+            kri.get("owner",       "—"),
+            kri.get("frequency",   "Monthly"),
+        ]
+        for col_idx, val in enumerate(values, start=1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=val)
+            cell.border = _thin_border()
+            cell.alignment = Alignment(vertical="center", wrap_text=True)
+            # Apply RAG colouring to the RAG Status column (col 8) and the row.
+            if col_idx == 8:
+                cell.fill = _rag_fill(rag)
+                cell.font = _rag_font(rag)
+            elif row_idx % 2 == 0:
+                cell.fill = _fill(_Colours.NEUTRAL_BG)
+
+        ws.row_dimensions[row_idx].height = 18
+
+    _auto_column_widths(ws)
+    _add_branding_footer(ws, len(kri_data) + 5)
+
+    return _to_bytes(wb)
+
+
+def generate_gap_table_excel(gap_data: dict) -> bytes:
+    """
+    Generate a Cash Flow Gap Analysis Excel report.
+
+    gap_data: dict with keys:
+        opening_balance, gap_table (list of {"month", "inflows", "outflows",
+        "net", "cumulative_balance"}), cash_runway_months, shortfall_month,
+        trough_balance, lcr, lcr_status, nsfr, nsfr_status
+
+    Returns raw .xlsx bytes.
+    """
+    if not OPENPYXL_AVAILABLE:
+        raise RuntimeError("openpyxl not installed.")
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Cash Flow Gap Analysis"
+
+    ws.merge_cells("A1:F1")
+    ws["A1"].value = "🛡️ VKKM Aegis — Cash Flow Gap Analysis"
+    ws["A1"].font  = Font(bold=True, size=14, color="1B2A4A")
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 30
+
+    # Summary block.
+    summary_items = [
+        ("Opening Balance",     f"€{gap_data.get('opening_balance', 0):,.0f}"),
+        ("Cash Runway",         f"{gap_data.get('cash_runway_months', 'N/A')} months"),
+        ("Trough Balance",      f"€{gap_data.get('trough_balance', 0):,.0f}"),
+        ("Shortfall Month",     f"Month {gap_data.get('shortfall_month', 'None')}"),
+        ("LCR",                 f"{gap_data.get('lcr', 'N/A')}"),
+        ("NSFR",                f"{gap_data.get('nsfr', 'N/A')}"),
+    ]
+    for row_offset, (label, value) in enumerate(summary_items, start=2):
+        ws.cell(row=row_offset, column=1, value=label).font  = _bold_font()
+        ws.cell(row=row_offset, column=2, value=value).alignment = Alignment(horizontal="left")
+        ws.cell(row=row_offset, column=1).fill = _fill(_Colours.BRAND_BG)
+
+    header_row = 2 + len(summary_items) + 1
+    headers = ["Month", "Inflows (€)", "Outflows (€)", "Net (€)", "Cumulative Balance (€)", "Status"]
+    _set_header_row(ws, headers, row=header_row)
+    ws.freeze_panes = f"A{header_row + 1}"
+
+    for row_idx, item in enumerate(gap_data.get("gap_table", []), start=header_row + 1):
+        balance = item.get("cumulative_balance", 0)
+        net     = item.get("net", 0)
+        status  = "🔴 Shortfall" if balance < 0 else ("🟡 Caution" if balance < gap_data.get("opening_balance", 0) * 0.20 else "🟢 OK")
+
+        values = [
+            f"M{item.get('month', row_idx - header_row)}",
+            item.get("inflows", 0),
+            item.get("outflows", 0),
+            net,
+            balance,
+            status,
+        ]
+        for col_idx, val in enumerate(values, start=1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=val)
+            cell.border = _thin_border()
+            cell.alignment = Alignment(horizontal="right" if col_idx > 1 else "center", vertical="center")
+            if col_idx in (2, 3, 4, 5):
+                cell.number_format = "#,##0.00"
+            # Colour the balance column based on health.
+            if col_idx == 5:
+                if balance < 0:
+                    cell.fill = _fill(_Colours.RED_BG)
+                    cell.font = Font(color=_Colours.RED_FG, bold=True, size=11)
+                elif balance < gap_data.get("opening_balance", 0) * 0.20:
+                    cell.fill = _fill(_Colours.AMBER_BG)
+
+    _auto_column_widths(ws)
+    _add_branding_footer(ws, header_row + len(gap_data.get("gap_table", [])) + 2)
+
+    return _to_bytes(wb)
+
+
+def generate_credit_risk_excel(credit_data: dict) -> bytes:
+    """
+    Generate a Credit Risk Assessment Excel report.
+
+    credit_data: dict matching CreditRiskResponse fields + optional metadata.
+    """
+    if not OPENPYXL_AVAILABLE:
+        raise RuntimeError("openpyxl not installed.")
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Credit Risk Assessment"
+
+    ws.merge_cells("A1:C1")
+    ws["A1"].value = "🛡️ VKKM Aegis — Credit Risk Assessment"
+    ws["A1"].font  = Font(bold=True, size=14, color="1B2A4A")
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+
+    ws.cell(row=2, column=1, value="Metric").font  = _bold_font(color=_Colours.HEADER_FG)
+    ws.cell(row=2, column=2, value="Value").font   = _bold_font(color=_Colours.HEADER_FG)
+    ws.cell(row=2, column=3, value="Formula").font = _bold_font(color=_Colours.HEADER_FG)
+    for col in range(1, 4):
+        ws.cell(row=2, column=col).fill = _fill(_Colours.HEADER_BG)
+        ws.cell(row=2, column=col).border = _thin_border()
+
+    rows = [
+        ("Expected Loss (EL)",        f"€{credit_data.get('expected_loss', 0):,.2f}",       "PD × EAD × LGD"),
+        ("Unexpected Loss (UL)",      f"€{credit_data.get('unexpected_loss', 0):,.2f}",     "EAD × LGD × √(PD×(1−PD))"),
+        ("EL as % of EAD",            f"{credit_data.get('expected_loss_pct', 0):.4f}%",    "(EL / EAD) × 100"),
+        ("UL as % of EAD",            f"{credit_data.get('unexpected_loss_pct', 0):.4f}%",  "(UL / EAD) × 100"),
+        ("Break-even Spread",         f"{credit_data.get('breakeven_spread_bps', 0):.0f} bps", "(EL / EAD) × 10,000"),
+        ("Risk Rating",               credit_data.get("risk_rating", "—"),                  "Based on EL%"),
+    ]
+
+    rating = str(credit_data.get("risk_rating", "")).lower()
+    rating_rag = "🔴 Red" if "critical" in rating or "high" in rating else (
+                 "🟡 Amber" if "moderate" in rating else "🟢 Green")
+
+    for row_idx, (metric, value, formula) in enumerate(rows, start=3):
+        ws.cell(row=row_idx, column=1, value=metric).font  = _bold_font()
+        ws.cell(row=row_idx, column=2, value=value).alignment = Alignment(horizontal="right")
+        ws.cell(row=row_idx, column=3, value=formula).font = Font(italic=True, size=10, color="555555")
+        for col in range(1, 4):
+            ws.cell(row=row_idx, column=col).border = _thin_border()
+        # RAG colour on Risk Rating row.
+        if metric == "Risk Rating":
+            ws.cell(row=row_idx, column=2).fill = _rag_fill(rating_rag)
+            ws.cell(row=row_idx, column=2).font = _rag_font(rating_rag)
+        elif row_idx % 2 == 0:
+            ws.cell(row=row_idx, column=1).fill = _fill(_Colours.NEUTRAL_BG)
+
+    _auto_column_widths(ws)
+    _add_branding_footer(ws, len(rows) + 5)
+
+    return _to_bytes(wb)
+
+
+def generate_risk_register_excel(register_data: list) -> bytes:
+    """
+    Generate a full ISO 31000 Risk Register Excel report.
+
+    register_data: list of dicts with keys:
+        risk_id, risk_description, category, likelihood (1-5), impact (1-5),
+        inherent_score, treatment, control, residual_likelihood, residual_impact,
+        residual_score, owner, review_date, rag_status
+
+    Returns raw .xlsx bytes.
+    """
+    if not OPENPYXL_AVAILABLE:
+        raise RuntimeError("openpyxl not installed.")
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Risk Register"
+
+    ws.merge_cells("A1:N1")
+    ws["A1"].value = "🛡️ VKKM Aegis — ISO 31000 Risk Register"
+    ws["A1"].font  = Font(bold=True, size=14, color="1B2A4A")
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 30
+
+    headers = [
+        "ID", "Risk Description", "Category",
+        "Likelihood", "Impact", "Inherent Score",
+        "Treatment / Control",
+        "Residual L", "Residual I", "Residual Score",
+        "RAG Status", "Owner", "Review Date", "Notes"
+    ]
+    _set_header_row(ws, headers, row=2)
+    ws.freeze_panes = "A3"
+
+    for row_idx, risk in enumerate(register_data, start=3):
+        rag = str(risk.get("rag_status", ""))
+        values = [
+            risk.get("risk_id",          f"R{row_idx - 2:03d}"),
+            risk.get("risk_description", "—"),
+            risk.get("category",         "—"),
+            risk.get("likelihood",        0),
+            risk.get("impact",            0),
+            risk.get("inherent_score",    0),
+            risk.get("treatment",        "—"),
+            risk.get("residual_likelihood", 0),
+            risk.get("residual_impact",     0),
+            risk.get("residual_score",      0),
+            rag,
+            risk.get("owner",       "TBC"),
+            risk.get("review_date", "—"),
+            risk.get("notes",       "—"),
+        ]
+        for col_idx, val in enumerate(values, start=1):
+            cell = ws.cell(row=row_idx, column=col_idx, value=val)
+            cell.border    = _thin_border()
+            cell.alignment = Alignment(vertical="center", wrap_text=(col_idx in (2, 7, 14)))
+            # Colour the RAG and score columns.
+            if col_idx == 11:  # RAG status
+                cell.fill = _rag_fill(rag)
+                cell.font = _rag_font(rag)
+            elif col_idx == 6:  # Inherent score
+                score = int(val) if val else 0
+                if score >= 20:
+                    cell.fill = _fill(_Colours.RED_BG)
+                elif score >= 10:
+                    cell.fill = _fill(_Colours.AMBER_BG)
+                elif score >= 5:
+                    cell.fill = _fill("C6EFCE")
+            elif row_idx % 2 == 0:
+                cell.fill = _fill(_Colours.NEUTRAL_BG)
+        ws.row_dimensions[row_idx].height = 22
+
+    _auto_column_widths(ws)
+    _add_branding_footer(ws, len(register_data) + 4)
+
+    return _to_bytes(wb)
+
+
+def generate_backtest_excel(backtest_result: dict) -> bytes:
+    """
+    Generate a VaR Model Backtest report with Kupiec test results.
+
+    backtest_result: dict from BacktestEngine.run()
+    """
+    if not OPENPYXL_AVAILABLE:
+        raise RuntimeError("openpyxl not installed.")
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "VaR Backtest"
+
+    ws.merge_cells("A1:C1")
+    ws["A1"].value = "🛡️ VKKM Aegis — VaR Model Backtest Report"
+    ws["A1"].font  = Font(bold=True, size=14, color="1B2A4A")
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 30
+
+    zone = backtest_result.get("basel_zone", "")
+    zone_rag = f"🟢 {zone}" if zone == "Green" else (f"🟡 {zone}" if zone == "Yellow" else f"🔴 {zone}")
+
+    rows = [
+        ("Observations",          backtest_result.get("n_observations",       "—"), ""),
+        ("VaR Exceptions",        backtest_result.get("n_exceptions",         "—"), "# days loss > VaR"),
+        ("Exception Rate",        f"{backtest_result.get('exception_rate_pct', 0):.4f}%", "Observed"),
+        ("Expected Exception Rate", f"{backtest_result.get('expected_rate_pct', 0):.2f}%", "1 - Confidence"),
+        ("Expected Exceptions",   backtest_result.get("expected_exceptions",  "—"), "N × (1−α)"),
+        ("Kupiec LR Statistic",   backtest_result.get("kupiec_lr",            "—"), "~χ²(1) under H₀"),
+        ("p-value",               backtest_result.get("p_value",              "—"), "> 0.05 = PASS"),
+        ("Kupiec Test",           "✅ PASS" if backtest_result.get("passes_kupiec") else "❌ FAIL", "5% significance"),
+        ("Basel Zone",            zone_rag,                                          "Traffic light"),
+        ("Clustering Risk",       backtest_result.get("clustering_risk",      "—"), "Consecutive runs"),
+        ("Verdict",               backtest_result.get("verdict",              "—"), ""),
+    ]
+
+    ws.cell(row=2, column=1, value="Metric").fill = _fill(_Colours.HEADER_BG)
+    ws.cell(row=2, column=2, value="Result").fill = _fill(_Colours.HEADER_BG)
+    ws.cell(row=2, column=3, value="Notes").fill  = _fill(_Colours.HEADER_BG)
+    for col in range(1, 4):
+        ws.cell(row=2, column=col).font   = _header_font()
+        ws.cell(row=2, column=col).border = _thin_border()
+
+    for row_idx, (metric, value, note) in enumerate(rows, start=3):
+        ws.cell(row=row_idx, column=1, value=metric).font = _bold_font()
+        cell_val = ws.cell(row=row_idx, column=2, value=str(value))
+        ws.cell(row=row_idx, column=3, value=note).font  = Font(italic=True, size=10, color="555555")
+        for col in range(1, 4):
+            ws.cell(row=row_idx, column=col).border = _thin_border()
+        # Colour the Basel Zone row.
+        if metric == "Basel Zone":
+            cell_val.fill = _rag_fill(zone_rag)
+            cell_val.font = _rag_font(zone_rag)
+        elif row_idx % 2 == 0:
+            ws.cell(row=row_idx, column=1).fill = _fill(_Colours.NEUTRAL_BG)
+
+    _auto_column_widths(ws)
+    _add_branding_footer(ws, len(rows) + 5)
+
+    return _to_bytes(wb)
+
+
+def generate_json_export(data: dict, report_type: str) -> dict:
+    """
+    Wrap any risk analysis result in a standardised VKKM Aegis JSON schema.
+
+    Returns a dict ready to be serialised to JSON — adds metadata envelope.
+    """
+    return {
+        "schema":       "vkkm-aegis-v3",
+        "report_type":  report_type,
+        "generated_at": datetime.now().isoformat(),
+        "plugin":       "VKKM Aegis v3.0 — vaibhavkkm.com",
+        "data":         data,
+    }
+
+
+# ─── Helper ───────────────────────────────────────────────────────────────────
+
+def _to_bytes(wb: "openpyxl.Workbook") -> bytes:
+    """Serialise a workbook to bytes without touching the filesystem."""
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return buf.read()

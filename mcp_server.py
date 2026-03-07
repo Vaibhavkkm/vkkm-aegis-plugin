@@ -1,17 +1,24 @@
 #!/usr/bin/env python3
 """
-VKKM Aegis — Python MCP Server (Phase 2)
-=========================================
-A FastAPI backend that powers the quantitative calculation endpoints for
-the VKKM Aegis Claude plugin. When connected via .mcp.json, Claude
-delegates heavy math to this server rather than estimating inline.
+VKKM Aegis — Python MCP Server (Phase 3 / v3.0)
+=================================================
+A FastAPI backend that powers the quantitative calculation, live data,
+ML modeling, and export endpoints for the VKKM Aegis Claude plugin.
 
-Endpoints:
+Phase 2 endpoints (v2.0):
   POST /monte-carlo  — 10,000-path GBM simulation → VaR + CVaR
   POST /greeks       — Exact Black-Scholes Greeks (δ, γ, ν, θ, ρ)
   POST /zscore       — Altman Z-Score (public Z model + private Z' model)
   POST /credit-risk  — PD × EAD × LGD → Expected & Unexpected Loss
   POST /liquidity    — LCR, NSFR, cash runway, 12-month gap table
+
+Phase 3 endpoints (v3.0):
+  GET  /market-data  — Live price, realised vol, 1yr return via Yahoo Finance
+  GET  /risk-free-rate — Current 3-month US T-bill yield
+  POST /backtest     — Kupiec POF test + Basel traffic light (CSV P&L upload)
+  POST /ml-pd        — ML-predicted Probability of Default (logistic regression)
+  POST /export/excel — Generate .xlsx report with RAG colour-coding
+  POST /export/json  — Generate structured JSON report
   GET  /health       — Liveness probe
 
 Usage:
@@ -19,25 +26,62 @@ Usage:
   uvicorn mcp_server:app --port 8082 --reload
 
 Author : VKKM (vaibhavkkm.com)
-Version: 2.0
+Version: 3.0
 """
 
 import math
+import logging
+import io
+import json
 import numpy as np
 from scipy.stats import norm
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Literal
+
+# ── Phase 3 data modules (soft imports — server runs even if dependencies missing) ──
+try:
+    from data.live_data import get_live_data
+    LIVE_DATA_OK = True
+except ImportError:
+    LIVE_DATA_OK = False
+    logging.warning("data.live_data not available — /market-data will return 503")
+
+try:
+    from data.backtest import BacktestEngine
+    BACKTEST_OK = True
+except ImportError:
+    BACKTEST_OK = False
+    logging.warning("data.backtest not available — /backtest will return 503")
+
+try:
+    from data.ml_pd_model import get_ml_pd_model
+    ML_PD_OK = True
+except ImportError:
+    ML_PD_OK = False
+    logging.warning("data.ml_pd_model not available — /ml-pd will return 503")
+
+try:
+    from data.excel_export import (
+        generate_kri_excel, generate_gap_table_excel,
+        generate_credit_risk_excel, generate_risk_register_excel,
+        generate_backtest_excel, generate_json_export,
+    )
+    EXCEL_OK = True
+except ImportError:
+    EXCEL_OK = False
+    logging.warning("data.excel_export not available — /export will return 503")
 
 
 # ─── Application setup ────────────────────────────────────────────────────────
 
 app = FastAPI(
     title="VKKM Aegis MCP Server",
-    description="Quantitative finance calculation engine for the VKKM Aegis Claude Plugin.",
-    version="2.0",
+    description="Quantitative finance calculation, live data, ML modeling, and export engine for the VKKM Aegis Claude Plugin.",
+    version="3.0",
 )
 
 # Allow Claude's environment to call this server from any origin.
@@ -382,7 +426,14 @@ def health_check():
     Simple liveness probe. Returns 200 OK when the server is running.
     Claude's MCP connector uses this to confirm the server is reachable.
     """
-    return {"status": "ok", "version": "2.0", "engine": "VKKM Aegis MCP Server"}
+    return {"status": "ok", "version": "3.0", "engine": "VKKM Aegis MCP Server",
+            "capabilities": {
+                "quantitative":  True,
+                "live_data":     LIVE_DATA_OK,
+                "backtesting":   BACKTEST_OK,
+                "ml_pd":         ML_PD_OK,
+                "excel_export":  EXCEL_OK,
+            }}
 
 
 @app.post("/monte-carlo", response_model=MonteCarloResponse, tags=["Market Risk"])
@@ -646,7 +697,252 @@ def compute_liquidity(req: LiquidityRequest):
     )
 
 
-# ─── Entry point ──────────────────────────────────────────────────────────────
+# ─── Phase 3 / v3.0 Endpoints ────────────────────────────────────────────────────────
+
+# Pydantic models for v3.0 request / response bodies.
+
+class MLPDRequest(BaseModel):
+    """Input financial ratios for the ML Probability of Default endpoint."""
+    X1: float = Field(..., description="Working Capital / Total Assets")
+    X2: float = Field(..., description="Retained Earnings / Total Assets")
+    X3: float = Field(..., description="EBIT / Total Assets")
+    X4: float = Field(..., description="Equity Value / Total Liabilities")
+    X5: float = Field(..., description="Revenue / Total Assets")
+    revenue_growth:   Optional[float] = Field(None, description="Revenue growth YoY (decimal, e.g. 0.05 for 5%)")
+    leverage_ratio:   Optional[float] = Field(None, ge=0.0, description="Debt / Equity ratio")
+    interest_coverage: Optional[float] = Field(None, description="EBIT / Interest Expense")
+
+
+class ExportRequest(BaseModel):
+    """Generic export request — data field matches the source command's output."""
+    report_type: Literal["kri", "gap-table", "credit-risk", "risk-register", "backtest"] = Field(
+        ..., description="Type of report to export"
+    )
+    data: dict = Field(..., description="The structured data from a prior VKKM Aegis command")
+    title: Optional[str] = Field(None, description="Optional custom report title")
+
+
+@app.get("/market-data", tags=["Live Data"])
+def get_market_data(ticker: str = Query(..., description="Stock ticker, e.g. AAPL, MSFT, ^GSPC")):
+    """
+    Fetch a live market data snapshot for a given ticker via Yahoo Finance.
+
+    Returns the current price, 30-day and 1-year realised volatility,
+    1-year annualised return (mu), and the current risk-free rate.
+
+    Data is cached in memory for 5 minutes to avoid rate-limiting.
+    Soft-fails: if Yahoo Finance is unreachable, returns null fields
+    instead of a 500 error.
+    """
+    if not LIVE_DATA_OK:
+        raise HTTPException(
+            status_code=503,
+            detail="Live data module unavailable. Install: pip install yfinance>=0.2.37"
+        )
+
+    live = get_live_data()
+    snapshot = live.get_full_market_snapshot(ticker)
+    return snapshot
+
+
+@app.get("/risk-free-rate", tags=["Live Data"])
+def get_risk_free_rate():
+    """
+    Fetch the current 3-month US Treasury Bill yield as the risk-free rate.
+
+    Source: Yahoo Finance ^IRX ticker (annualised, decimal).
+    Falls back to a hardcoded 4.5% estimate if the live feed is unavailable.
+    """
+    if not LIVE_DATA_OK:
+        return {"rate_decimal": 0.045, "rate_pct": 4.5, "source": "fallback", "is_live": False}
+
+    live = get_live_data()
+    rate = live.fetch_risk_free_rate()
+
+    if rate is None:
+        return {"rate_decimal": 0.045, "rate_pct": 4.5, "source": "fallback (Yahoo Finance unavailable)", "is_live": False}
+
+    return {
+        "rate_decimal": round(rate, 6),
+        "rate_pct":     round(rate * 100, 4),
+        "source":       "Yahoo Finance ^IRX (3-month T-Bill)",
+        "is_live":      True,
+    }
+
+
+@app.post("/backtest", tags=["Model Risk"])
+async def run_backtest(
+    confidence: float = Query(0.99, ge=0.90, le=0.999, description="VaR confidence level"),
+    var_estimate: float = Query(..., gt=0.0, description="VaR amount being tested (positive number)"),
+    file: UploadFile = File(..., description="CSV file with a 'pnl' column of daily P&L values"),
+):
+    """
+    Run the Kupiec Proportion of Failures (POF) test on a VaR model.
+
+    Upload a CSV file with a column named 'pnl' containing daily P&L values
+    (positive = gain, negative = loss). The endpoint returns:
+      - Number and rate of VaR exceptions
+      - Kupiec LR statistic and p-value
+      - Basel traffic light zone (Green / Yellow / Red)
+      - Exception clustering analysis
+      - Plain-English verdict with recommended actions
+
+    Basel Traffic Light (250 observations, 99% VaR):
+      Green  → 0–4  exceptions  → model accepted
+      Yellow → 5–9  exceptions  → model under review
+      Red    → 10+ exceptions  → model rejected
+    """
+    if not BACKTEST_OK:
+        raise HTTPException(
+            status_code=503,
+            detail="Backtesting module unavailable. Install scipy: pip install scipy>=1.12.0"
+        )
+
+    # Read and parse the uploaded CSV.
+    try:
+        contents = await file.read()
+        # Support both comma and semicolon separators.
+        import csv, io as _io
+        text = contents.decode("utf-8")
+        dialect = csv.Sniffer().sniff(text[:1024], delimiters=",;\t")
+        reader = csv.DictReader(_io.StringIO(text), dialect=dialect)
+        rows = list(reader)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=f"Could not parse CSV file: {e}")
+
+    # Extract the P&L column — accept 'pnl', 'PnL', 'P&L', 'return', 'returns'.
+    pnl_col = None
+    for candidate in ("pnl", "PnL", "P&L", "return", "returns", "daily_pnl", "pl"):
+        if rows and candidate in rows[0]:
+            pnl_col = candidate
+            break
+
+    if pnl_col is None:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"No P&L column found. Expected one of: pnl, returns, daily_pnl. "
+                f"Found columns: {list(rows[0].keys()) if rows else 'none'}"
+            )
+        )
+
+    try:
+        pnl_series = np.array([float(r[pnl_col]) for r in rows if r[pnl_col].strip()])
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=f"Non-numeric value in P&L column: {e}")
+
+    if len(pnl_series) < 20:
+        raise HTTPException(
+            status_code=422,
+            detail=f"At least 20 observations required for backtesting (got {len(pnl_series)})."
+        )
+
+    engine = BacktestEngine()
+    result = engine.run(
+        pnl_series=pnl_series,
+        var_estimate=var_estimate,
+        confidence=confidence,
+    )
+    return result
+
+
+@app.post("/ml-pd", tags=["Credit Risk"])
+def compute_ml_pd(req: MLPDRequest):
+    """
+    Predict the 1-year Probability of Default using a calibrated logistic
+    regression model trained on 300 synthetic companies.
+
+    Returns:
+      - pd_pct         : Predicted PD as a percentage (e.g. 8.4)
+      - ci_lower_pct   : Lower bound of 95% confidence interval
+      - ci_upper_pct   : Upper bound of 95% confidence interval
+      - pd_label       : Risk bucket (Very Low / Low / Moderate / High / Very High)
+      - z_score        : Implied Altman Z'-score for comparison
+      - model_quality  : High / Moderate (based on held-out test accuracy)
+      - available      : True if ML model ran; False if Z' fallback was used
+
+    The model auto-trains on first call if pd_model.pkl is not found
+    (training takes < 1 second from the bundled synthetic dataset).
+    """
+    if not ML_PD_OK:
+        raise HTTPException(
+            status_code=503,
+            detail="ML PD module unavailable. Install: pip install scikit-learn>=1.4.0 joblib pandas"
+        )
+
+    features = req.model_dump(exclude_none=True)
+    model = get_ml_pd_model()
+    result = model.predict_pd(features)
+    return result
+
+
+@app.post("/export/excel", tags=["Export"])
+def export_excel(req: ExportRequest):
+    """
+    Generate a professionally formatted .xlsx Excel report from structured
+    risk analysis data produced by any VKKM Aegis command.
+
+    Supported report types:
+      - kri           → KRI Dashboard (RAG colour-coded per cell)
+      - gap-table     → Cash Flow Gap Analysis (red rows on shortfalls)
+      - credit-risk   → Credit Risk Assessment (EL/UL/spread)
+      - risk-register → ISO 31000 Risk Register (score-based colouring)
+      - backtest      → VaR Backtest Report (Basel zone highlighted)
+
+    Returns a streaming .xlsx binary response ready for download.
+    """
+    if not EXCEL_OK:
+        raise HTTPException(
+            status_code=503,
+            detail="Excel export module unavailable. Install: pip install openpyxl>=3.1.0"
+        )
+
+    report_type = req.report_type
+    data        = req.data
+
+    try:
+        if report_type == "kri":
+            xlsx_bytes = generate_kri_excel(data.get("kri_data", [data]))
+        elif report_type == "gap-table":
+            xlsx_bytes = generate_gap_table_excel(data)
+        elif report_type == "credit-risk":
+            xlsx_bytes = generate_credit_risk_excel(data)
+        elif report_type == "risk-register":
+            xlsx_bytes = generate_risk_register_excel(data.get("register", [data]))
+        elif report_type == "backtest":
+            xlsx_bytes = generate_backtest_excel(data)
+        else:
+            raise HTTPException(status_code=422, detail=f"Unknown report_type: {report_type}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Excel generation failed: {e}")
+
+    filename = f"vkkm-aegis-{report_type}.xlsx"
+    return StreamingResponse(
+        io.BytesIO(xlsx_bytes),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.post("/export/json", tags=["Export"])
+def export_json(req: ExportRequest):
+    """
+    Wrap risk analysis data in the standardised VKKM Aegis v3 JSON schema.
+
+    Adds a metadata envelope:
+        {“schema”: “vkkm-aegis-v3”, “report_type”: "...", “generated_at”: "...",
+         “plugin”: "...", “data”: {...}}
+
+    Use this endpoint to integrate VKKM Aegis output with downstream systems
+    (risk data warehouses, APIs, Power BI, Tableau).
+    """
+    if not EXCEL_OK:
+        raise HTTPException(status_code=503, detail="Export module unavailable.")
+
+    return generate_json_export(req.data, req.report_type)
+
+
+# ─── Entry point ────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     # Run with: python mcp_server.py

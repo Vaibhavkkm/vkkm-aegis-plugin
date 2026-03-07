@@ -1,14 +1,14 @@
 {
     "name": "vkkm-aegis",
-    "version": "2.0.0",
-    "description": "VKKM Aegis v2.0 — Advanced Finance Risk Management Claude Plugin",
+    "version": "3.0.0",
+    "description": "VKKM Aegis v3.0 — Enterprise Finance Risk Management Claude Plugin",
     "author": "VKKM <vaibhavkkm.com>",
     "license": "MIT",
     "scripts": {
         "test": "node tests/validate.js",
         "validate": "node tests/validate.js",
         "test:math": "node tests/math-tests.js",
-        "test:python": "python tests/mcp-tests.py",
+        "test:python": "python3 tests/mcp-tests.py",
         "test:all": "node tests/validate.js && node tests/math-tests.js",
         "mcp:start": "uvicorn mcp_server:app --port 8082 --reload",
         "mcp:install": "pip install -r requirements.txt"
