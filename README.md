@@ -1,3 +1,11 @@
+---
+title: VKKM Aegis
+emoji: 🛡️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
 # VKKM Aegis 🛡️ — Enterprise Finance & Risk Engine (v3.0)
 
 **A quantitative risk management plugin for Claude — built to protect you before things go wrong.**
