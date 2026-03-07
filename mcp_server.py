@@ -420,6 +420,18 @@ def _compute_zscore(req: ZScoreRequest) -> dict:
 
 # ─── API endpoints ─────────────────────────────────────────────────────────────
 
+@app.get("/", tags=["Infrastructure"])
+def read_root():
+    """Welcome point for browser visitors (e.g., Hugging Face Space root URL)."""
+    return {
+        "engine": "VKKM Aegis",
+        "version": "3.0.0",
+        "status": "online",
+        "description": "Enterprise Risk Management Backend for Claude",
+        "docs": "Append /docs to this URL to view the interactive API playground."
+    }
+
+
 @app.get("/health", tags=["Infrastructure"])
 def health_check():
     """
