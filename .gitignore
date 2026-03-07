@@ -25,3 +25,6 @@ tests/output/
 # Temporary files
 tmp/
 temp/
+
+# Content files
+linkedin_post.txt

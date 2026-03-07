@@ -7,12 +7,12 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import axios from "axios";
 
-const API_BASE_URL = "https://vaibhavkkm-vkkm-aegis.hf.space";
+const API_BASE_URL = process.env.VKKM_API_URL || "https://vaibhavkkm-vkkm-aegis.hf.space";
 
 const server = new Server(
   {
     name: "vkkm-aegis",
-    version: "3.0.0",
+    version: "4.0.0",
   },
   {
     capabilities: {
@@ -156,6 +156,18 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
         },
       },
+      {
+        name: "fetch_portfolio_sql",
+        description: "Fetch live portfolio data directly from an enterprise SQL database.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            db_url: { type: "string", description: "SQLAlchemy connection string (e.g., sqlite:///data.db, postgresql://user:pass@host/db)" },
+            query: { type: "string", description: "SQL SELECT query that returns name, weight, mu, sigma columns" },
+          },
+          required: ["db_url", "query"],
+        },
+      },
     ],
   };
 });
@@ -194,6 +206,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         break;
       case "ml_pd":
         endpoint = "/ml-pd";
+        break;
+      case "fetch_portfolio_sql":
+        endpoint = "/portfolio/sql";
         break;
       default:
         throw new Error(`Unknown tool: ${request.params.name}`);

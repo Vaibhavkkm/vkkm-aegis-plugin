@@ -6,7 +6,7 @@ colorTo: indigo
 sdk: docker
 pinned: false
 ---
-# VKKM Aegis 🛡️ — Enterprise Finance & Risk Engine (v3.0)
+# VKKM Aegis 🛡️ — Enterprise Finance & Risk Engine (v4.0)
 
 **A quantitative risk management plugin for Claude — built to protect you before things go wrong.**
 
@@ -14,7 +14,7 @@ Named after the divine shield in Greek mythology, Aegis was built because most p
 
 We wanted to change that. VKKM Aegis turns Claude from a helpful conversational assistant into a **specialist Chief Risk Officer (CRO) and Quantitative Analyst.** 
 
-With version 3.0, Aegis officially steps into the **Enterprise** tier, bringing real-time market data, historical model backtesting, machine learning, and board-ready Excel exports straight into your chat interface.
+With version 4.0, Aegis officially steps into the **Enterprise** tier, bringing real-time market data, direct enterprise SQL database integrations, historical model backtesting, machine learning, and board-ready Excel exports straight into your chat interface.
 
 ---
 
@@ -28,11 +28,14 @@ Why trust an AI with your company's risk? Because Aegis isn't just generating te
 
 ---
 
-## 🚀 What's New in v3.0 (Enterprise)
+## 🚀 What's New in v4.0 (Enterprise)
 
-We realized that "Advanced" wasn't enough for institutional users. The v3.0 release bridges the gap between conversational AI and enterprise financial systems:
+We realized that "Advanced" wasn't enough for institutional users. The v4.0 release bridges the gap between conversational AI and enterprise financial systems:
 
-1. **Live Market Data (`yfinance` via MCP)**
+1. **Enterprise SQL Database Integration (New in v4.0)**
+   Aegis now securely connects to local or enterprise SQL databases (PostgreSQL, MySQL, Snowflake, SQLite) to pull your live, proprietary portfolio data automatically instead of relying on manual JSON uploads.
+   
+2. **Live Market Data (`yfinance` via MCP)**
    Aegis now pulls real-time closing prices, 30-day/1-year rolling realized volatility, and the 3-month US T-bill risk-free rate automatically. When you run 1,000,000-path GBM simulation or price an option, Aegis grounds its math in today's actual market reality.
    
 2. **Machine Learning Probability of Default (ML-PD)**
@@ -43,6 +46,17 @@ We realized that "Advanced" wasn't enough for institutional users. The v3.0 rele
 
 4. **Board-Ready Excel Exports**
    You can't take a chat transcript to a board meeting. Aegis now generates beautifully styled, RAG (Red/Amber/Green) color-coded `.xlsx` files for KRI Dashboards, Cash Flow Gap Tables, and Risk Registers with a single click.
+
+---
+
+## 🔒 Security & Architecture Justification
+
+VKKM Aegis requires a local Python FastAPI backend utilizing `numpy`, `scipy`, `scikit-learn`, `yfinance`, and `SQLAlchemy`. 
+
+While this requires a heavier installation footprint than standard Node.js plugins, it is an **intentional architectural decision for enterprise security**:
+1. **Zero Data Egress:** Quantitative models, Monte Carlo simulations, and database connections execute *entirely locally* on your trusted machine (or isolated private cloud).
+2. **Proprietary Math Sandbox:** Heavily regulated financial institutions cannot send raw proprietary P&L data or database connection strings (`postgresql://...`) to third-party public LLM endpoints. 
+3. **Deterministic Math Engine:** LLMs struggle with rigorous floating-point mathematics. By delegating complex equations (Black-Scholes, Kupiec testing, GBM) to a hardened Python backend, we ensure institutional-grade deterministic precision while treating the LLM strictly as an analytical reasoning and abstraction layer.
 
 ---
 
@@ -139,4 +153,4 @@ Aegis is highly opinionated about how a professional quant builds software:
 ---
 
 **Built by VKKM** — [vaibhavkkm.com](https://vaibhavkkm.com)  
-*VKKM Aegis Enterprise Edition (v3.0)*
+*VKKM Aegis Enterprise Edition (v4.0)*

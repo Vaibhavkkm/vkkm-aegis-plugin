@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-VKKM Aegis — Python MCP Server (Phase 3 / v3.0)
+VKKM Aegis — Python MCP Server (Phase 4 / v4.0)
 =================================================
 A FastAPI backend that powers the quantitative calculation, live data,
-ML modeling, and export endpoints for the VKKM Aegis Claude plugin.
+ML modeling, SQL database integrations, and export endpoints for the VKKM Aegis Claude plugin.
+
+Phase 4 endpoints (v4.0):
+  POST /portfolio/sql — Fetch live portfolio data from enterprise SQL databases
 
 Phase 2 endpoints (v2.0):
   POST /monte-carlo  — 1,000,000-path GBM simulation → VaR + CVaR
@@ -26,7 +29,7 @@ Usage:
   uvicorn mcp_server:app --port 8082 --reload
 
 Author : VKKM (vaibhavkkm.com)
-Version: 3.0
+Version: 4.0
 """
 
 import math
@@ -80,8 +83,8 @@ except ImportError:
 
 app = FastAPI(
     title="VKKM Aegis MCP Server",
-    description="Quantitative finance calculation, live data, ML modeling, and export engine for the VKKM Aegis Claude Plugin.",
-    version="3.0",
+    description="Quantitative finance calculation, live data, ML modeling, SQL DB integration, and export engine for the VKKM Aegis Claude Plugin.",
+    version="4.0",
 )
 
 # Allow Claude's environment to call this server from any origin.
@@ -101,6 +104,11 @@ class PortfolioAsset(BaseModel):
     weight: float = Field(..., ge=0.0, le=1.0, description="Portfolio weight (0–1)")
     mu: float = Field(..., description="Expected annual return (decimal, e.g. 0.08 for 8%)")
     sigma: float = Field(..., gt=0.0, description="Annual volatility (decimal, e.g. 0.18 for 18%)")
+
+class SQLPortfolioRequest(BaseModel):
+    """Database connection and query details to fetch portfolio data."""
+    db_url: str = Field(..., description="SQLAlchemy compatible connection string (e.g., sqlite:///data.db, postgresql://user:pass@host/db)")
+    query: str = Field(..., description="SQL SELECT query that returns name, weight, mu, sigma columns")
 
 
 class MonteCarloRequest(BaseModel):
@@ -438,13 +446,14 @@ def health_check():
     Simple liveness probe. Returns 200 OK when the server is running.
     Claude's MCP connector uses this to confirm the server is reachable.
     """
-    return {"status": "ok", "version": "3.0", "engine": "VKKM Aegis MCP Server",
+    return {"status": "ok", "version": "4.0", "engine": "VKKM Aegis MCP Server",
             "capabilities": {
                 "quantitative":  True,
                 "live_data":     LIVE_DATA_OK,
                 "backtesting":   BACKTEST_OK,
                 "ml_pd":         ML_PD_OK,
                 "excel_export":  EXCEL_OK,
+                "sql_integration": True,
             }}
 
 
@@ -952,6 +961,62 @@ def export_json(req: ExportRequest):
         raise HTTPException(status_code=503, detail="Export module unavailable.")
 
     return generate_json_export(req.data, req.report_type)
+
+
+@app.post("/portfolio/sql", response_model=List[PortfolioAsset], tags=["SQL Integration"])
+def fetch_portfolio_sql(req: SQLPortfolioRequest):
+    """
+    Connect to an enterprise SQL database using a SQLAlchemy connection string,
+    execute the provided query, and map the results to a list of PortfolioAsset objects.
+
+    The query MUST return columns mapping to: 'name', 'weight', 'mu', 'sigma'.
+    """
+    try:
+        from sqlalchemy import create_engine, text
+        import pandas as pd
+    except ImportError:
+        raise HTTPException(status_code=503, detail="SQLAlchemy or Pandas is not installed.")
+
+    try:
+        engine = create_engine(req.db_url)
+        with engine.connect() as conn:
+            # We use pandas read_sql to safely execute and parse the results
+            df = pd.read_sql(text(req.query), conn)
+            
+        # Standardise column names (lowercase and stripped)
+        df.columns = [str(c).lower().strip() for c in df.columns]
+
+        required_cols = {'name', 'weight', 'mu', 'sigma'}
+        if not required_cols.issubset(df.columns):
+            missing = required_cols - set(df.columns)
+            raise HTTPException(status_code=422, detail=f"Query result is missing required columns: {missing}")
+
+        # Drop any rows with NaN in the required columns
+        df = df.dropna(subset=list(required_cols))
+
+        assets = []
+        for _, row in df.iterrows():
+            assets.append(PortfolioAsset(
+                name=str(row['name']),
+                weight=float(row['weight']),
+                mu=float(row['mu']),
+                sigma=float(row['sigma'])
+            ))
+
+        # Perform a basic check on total portfolio weight
+        total_weight = sum(a.weight for a in assets)
+        if total_weight <= 0.0:
+            raise HTTPException(status_code=422, detail="Total portfolio weight must be greater than zero.")
+            
+        # Logging for observability
+        logging.info(f"Successfully fetched {len(assets)} assets out of SQL database.")
+
+        return assets
+
+    except Exception as e:
+        # Professional fallback logging
+        logging.error(f"SQL Portfolio Fetch Error: {e}")
+        raise HTTPException(status_code=400, detail=f"Failed to fetch portfolio from SQL DB: {str(e)}")
 
 
 # ─── Entry point ────────────────────────────────────────────────────────────
