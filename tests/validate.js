@@ -29,8 +29,12 @@
 
 'use strict';
 
-const fs   = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Resolve the project root from wherever this script lives.
 const ROOT = path.resolve(__dirname, '..');
@@ -45,41 +49,41 @@ const REQUIRED_FILES = [
   'schemas/mcp-schema.json',
 
   // Original v1.0 commands (6)
-  'commands/scan-document.md',
-  'commands/stress-test.md',
-  'commands/risk-register.md',
-  'commands/regulatory-check.md',
-  'commands/escalation-report.md',
-  'commands/counterparty-profile.md',
+  'skills/scan-document/SKILL.md',
+  'skills/stress-test/SKILL.md',
+  'skills/risk-register/SKILL.md',
+  'skills/regulatory-check/SKILL.md',
+  'skills/escalation-report/SKILL.md',
+  'skills/counterparty-profile/SKILL.md',
 
   // v2.0 commands (9)
-  'commands/zscore.md',
-  'commands/greeks.md',
-  'commands/var-calc.md',
-  'commands/credit-risk.md',
-  'commands/liquidity-risk.md',
-  'commands/icaap.md',
-  'commands/rcsa.md',
-  'commands/kri-dashboard.md',
-  'commands/reg-calendar.md',
+  'skills/zscore/SKILL.md',
+  'skills/greeks/SKILL.md',
+  'skills/var-calc/SKILL.md',
+  'skills/credit-risk/SKILL.md',
+  'skills/liquidity-risk/SKILL.md',
+  'skills/icaap/SKILL.md',
+  'skills/rcsa/SKILL.md',
+  'skills/kri-dashboard/SKILL.md',
+  'skills/reg-calendar/SKILL.md',
 
   // v3.0 commands (3)
-  'commands/backtest.md',
-  'commands/ml-pd.md',
-  'commands/export-report.md',
+  'skills/backtest/SKILL.md',
+  'skills/ml-pd/SKILL.md',
+  'skills/export-report/SKILL.md',
 
   // Original v1.0 skills (6)
-  'skills/risk-scoring.md',
-  'skills/eu-regulations.md',
-  'skills/contract-patterns.md',
-  'skills/financial-risk.md',
-  'skills/plain-language.md',
-  'skills/disclaimers.md',
+  'skills/risk-scoring/SKILL.md',
+  'skills/eu-regulations/SKILL.md',
+  'skills/contract-patterns/SKILL.md',
+  'skills/financial-risk/SKILL.md',
+  'skills/plain-language/SKILL.md',
+  'skills/disclaimers/SKILL.md',
 
   // v2.0 skills (3)
-  'skills/credit-models.md',
-  'skills/options-theory.md',
-  'skills/regulatory-docs.md',
+  'skills/credit-models/SKILL.md',
+  'skills/options-theory/SKILL.md',
+  'skills/regulatory-docs/SKILL.md',
 
   // Master prompts (must be identical)
   'skills/risk-management/SKILL.md',
@@ -141,16 +145,16 @@ const COMMAND_REQUIRED_SECTIONS = [
 
 // Per-skill content requirements — confirms the important content is present.
 const SKILL_REQUIRED_SECTIONS = {
-  'skills/risk-scoring.md':      ['## Rule', '5×5 Risk Matrix', '📊 AEGIS RISK SNAPSHOT'],
-  'skills/eu-regulations.md':    ['## Rule', 'GDPR', 'PSD2', 'DORA', 'NIS2'],
-  'skills/contract-patterns.md': ['## Rule', '🔴 HIGH RISK', '🟢 LOW RISK'],
-  'skills/financial-risk.md':    ['## Rule', 'Value at Risk', 'Monte Carlo', 'Stress Testing'],
-  'skills/plain-language.md':    ['## Rule', 'VaR', 'GDPR', 'ISO 31000'],
-  'skills/disclaimers.md':       ['Legal Disclaimer', 'Financial Disclaimer', 'Compliance Disclaimer', 'Due Diligence Disclaimer', 'Output Ordering'],
+  'skills/risk-scoring/SKILL.md':      ['## Rule', '5×5 Risk Matrix', '📊 AEGIS RISK SNAPSHOT'],
+  'skills/eu-regulations/SKILL.md':    ['## Rule', 'GDPR', 'PSD2', 'DORA', 'NIS2'],
+  'skills/contract-patterns/SKILL.md': ['## Rule', '🔴 HIGH RISK', '🟢 LOW RISK'],
+  'skills/financial-risk/SKILL.md':    ['## Rule', 'Value at Risk', 'Monte Carlo', 'Stress Testing'],
+  'skills/plain-language/SKILL.md':    ['## Rule', 'VaR', 'GDPR', 'ISO 31000'],
+  'skills/disclaimers/SKILL.md':       ['Legal Disclaimer', 'Financial Disclaimer', 'Compliance Disclaimer', 'Due Diligence Disclaimer', 'Output Ordering'],
   // New v2.0 skill files
-  'skills/credit-models.md':     ['## Rule', 'Altman', 'X1', 'X3', 'PD', 'LGD', 'EAD', 'Expected Loss'],
-  'skills/options-theory.md':    ['## Rule', 'Black-Scholes', 'Delta', 'Gamma', 'Vega', 'Theta', 'Rho', 'd1', 'd2'],
-  'skills/regulatory-docs.md':   ['## Rule', 'ICAAP', 'RCSA', 'KRI', 'LCR', 'NSFR'],
+  'skills/credit-models/SKILL.md':     ['## Rule', 'Altman', 'X1', 'X3', 'PD', 'LGD', 'EAD', 'Expected Loss'],
+  'skills/options-theory/SKILL.md':    ['## Rule', 'Black-Scholes', 'Delta', 'Gamma', 'Vega', 'Theta', 'Rho', 'd1', 'd2'],
+  'skills/regulatory-docs/SKILL.md':   ['## Rule', 'ICAAP', 'RCSA', 'KRI', 'LCR', 'NSFR'],
 };
 
 // Minimum file sizes — files below these thresholds were probably truncated.
@@ -253,8 +257,8 @@ function testPluginJson(pluginJson) {
   if (!pluginJson) { assert(false, 'plugin.json parsed — skipping field tests'); return; }
 
   assert(pluginJson.name === 'VKKM Aegis', 'name = "VKKM Aegis"');
-  assert(pluginJson.version === '3.0', 'version = "3.0"');
-  assert(typeof pluginJson.author === 'string' && pluginJson.author.length > 0, 'author is present');
+  assert(pluginJson.version === '3.0.0', 'version = "3.0.0"');
+  assert(typeof pluginJson.author === 'object' && pluginJson.author.name === 'VKKM', 'author is an object with name = "VKKM"');
   assert(typeof pluginJson.description === 'string' && pluginJson.description.length >= 20, 'description ≥ 20 chars');
   assert(typeof pluginJson.system_prompt_path === 'string', 'system_prompt_path is present');
   assert(Array.isArray(pluginJson.slash_commands), 'slash_commands is an array');
@@ -323,22 +327,22 @@ function testCommandFiles() {
 
   const commandFiles = [
     // Original v1.0 commands
-    'commands/scan-document.md',
-    'commands/stress-test.md',
-    'commands/risk-register.md',
-    'commands/regulatory-check.md',
-    'commands/escalation-report.md',
-    'commands/counterparty-profile.md',
+    'skills/scan-document/SKILL.md',
+    'skills/stress-test/SKILL.md',
+    'skills/risk-register/SKILL.md',
+    'skills/regulatory-check/SKILL.md',
+    'skills/escalation-report/SKILL.md',
+    'skills/counterparty-profile/SKILL.md',
     // New v2.0 commands
-    'commands/zscore.md',
-    'commands/greeks.md',
-    'commands/var-calc.md',
-    'commands/credit-risk.md',
-    'commands/liquidity-risk.md',
-    'commands/icaap.md',
-    'commands/rcsa.md',
-    'commands/kri-dashboard.md',
-    'commands/reg-calendar.md',
+    'skills/zscore/SKILL.md',
+    'skills/greeks/SKILL.md',
+    'skills/var-calc/SKILL.md',
+    'skills/credit-risk/SKILL.md',
+    'skills/liquidity-risk/SKILL.md',
+    'skills/icaap/SKILL.md',
+    'skills/rcsa/SKILL.md',
+    'skills/kri-dashboard/SKILL.md',
+    'skills/reg-calendar/SKILL.md',
   ];
 
   for (const file of commandFiles) {
@@ -425,8 +429,8 @@ function testMasterPrompt() {
 function testDisclaimers() {
   console.log('\n⚖️   DISCLAIMERS FILE');
 
-  if (!exists('skills/disclaimers.md')) { assert(false, 'disclaimers.md exists'); return; }
-  const content = read('skills/disclaimers.md');
+  if (!exists('skills/disclaimers/SKILL.md')) { assert(false, 'disclaimers/SKILL.md exists'); return; }
+  const content = read('skills/disclaimers/SKILL.md');
 
   const requiredBlocks = [
     'LEGAL DISCLAIMER',
@@ -437,7 +441,7 @@ function testDisclaimers() {
     'Output Ordering',
   ];
   for (const block of requiredBlocks) {
-    assert(content.includes(block), `disclaimers.md has "${block}"`);
+    assert(content.includes(block), `disclaimers/SKILL.md has "${block}"`);
   }
 }
 
@@ -445,8 +449,8 @@ function testDisclaimers() {
 function testRiskScoringConsistency() {
   console.log('\n📊  RISK SCORING CONSISTENCY');
 
-  if (!exists('skills/risk-scoring.md')) { assert(false, 'risk-scoring.md exists'); return; }
-  const content = read('skills/risk-scoring.md');
+  if (!exists('skills/risk-scoring/SKILL.md')) { assert(false, 'risk-scoring/SKILL.md exists'); return; }
+  const content = read('skills/risk-scoring/SKILL.md');
 
   assert(content.includes('20–25'), 'Critical threshold = 20–25');
   assert(content.includes('10–19'), 'High threshold = 10–19');
@@ -472,112 +476,112 @@ function testCommandSpecificContent() {
 
   // ── v1.0 commands ──────────────────────────────────────────────────────────
 
-  if (exists('commands/counterparty-profile.md')) {
-    const c = read('commands/counterparty-profile.md');
-    assert(c.includes('Trust Score'), 'counterparty-profile.md has Trust Score');
+  if (exists('skills/counterparty-profile/SKILL.md')) {
+    const c = read('skills/counterparty-profile/SKILL.md');
+    assert(c.includes('Trust Score'), 'counterparty-profile/SKILL.md has Trust Score');
     assert(
       c.includes('Go / Caution / No-Go') || (c.includes('GO') && c.includes('CAUTION') && c.includes('NO-GO')),
       'counterparty-profile.md has Go/Caution/No-Go recommendation'
     );
   }
 
-  if (exists('commands/escalation-report.md')) {
-    const c = read('commands/escalation-report.md');
+  if (exists('skills/escalation-report/SKILL.md')) {
+    const c = read('skills/escalation-report/SKILL.md');
     assert(c.includes('ESCALATION PATH'), 'escalation-report.md has ESCALATION PATH section');
-    assert(c.includes('Tone') || c.includes('tone'), 'escalation-report.md has tone menu');
+    assert(c.includes('Tone') || c.includes('tone'), 'escalation-report/SKILL.md has tone menu');
   }
 
-  if (exists('commands/regulatory-check.md')) {
-    const c = read('commands/regulatory-check.md');
+  if (exists('skills/regulatory-check/SKILL.md')) {
+    const c = read('skills/regulatory-check/SKILL.md');
     assert(
       c.includes('OFFICIAL SOURCES') || c.includes('Official Sources'),
       'regulatory-check.md has official sources'
     );
-    assert(c.includes('eur-lex.europa.eu'), 'regulatory-check.md links to EUR-Lex');
+    assert(c.includes('eur-lex.europa.eu'), 'regulatory-check/SKILL.md links to EUR-Lex');
   }
 
-  if (exists('commands/risk-register.md')) {
-    const c = read('commands/risk-register.md');
+  if (exists('skills/risk-register/SKILL.md')) {
+    const c = read('skills/risk-register/SKILL.md');
     assert(c.includes('ISO 31000'),    'risk-register.md references ISO 31000');
     assert(c.includes('Regulatory'),   'risk-register.md covers Regulatory category');
     assert(c.includes('Reputational'), 'risk-register.md covers Reputational category');
-    assert(c.includes('Financial'),    'risk-register.md covers Financial category');
+    assert(c.includes('Financial'),    'risk-register/SKILL.md covers Financial category');
   }
 
-  if (exists('commands/stress-test.md')) {
-    const c = read('commands/stress-test.md');
+  if (exists('skills/stress-test/SKILL.md')) {
+    const c = read('skills/stress-test/SKILL.md');
     assert(c.includes('ILLUSTRATIVE ESTIMATE'), 'stress-test.md has ILLUSTRATIVE ESTIMATE label');
-    assert(c.includes('DATA-GROUNDED'),         'stress-test.md has DATA-GROUNDED label');
+    assert(c.includes('DATA-GROUNDED'),         'stress-test/SKILL.md has DATA-GROUNDED label');
   }
 
   // ── v2.0 commands ──────────────────────────────────────────────────────────
 
-  if (exists('commands/zscore.md')) {
-    const c = read('commands/zscore.md');
+  if (exists('skills/zscore/SKILL.md')) {
+    const c = read('skills/zscore/SKILL.md');
     assert(c.includes('Altman'), 'zscore.md references Altman');
     assert(c.includes('X1') && c.includes('X2') && c.includes('X3'), 'zscore.md has X1–X3 ratio definitions');
     assert(c.includes('Distress'), 'zscore.md has Distress zone');
-    assert(c.includes('Z\'') || c.includes("Z'") || c.includes('private'), 'zscore.md has private company model');
+    assert(c.includes('Z\'') || c.includes("Z'") || c.includes('private'), 'zscore/SKILL.md has private company model');
   }
 
-  if (exists('commands/greeks.md')) {
-    const c = read('commands/greeks.md');
+  if (exists('skills/greeks/SKILL.md')) {
+    const c = read('skills/greeks/SKILL.md');
     assert(c.includes('Delta'), 'greeks.md has Delta');
     assert(c.includes('Gamma'), 'greeks.md has Gamma');
     assert(c.includes('Vega'),  'greeks.md has Vega');
     assert(c.includes('Theta'), 'greeks.md has Theta');
     assert(c.includes('Rho'),   'greeks.md has Rho');
-    assert(c.includes('d1') && c.includes('d2'), 'greeks.md has d1/d2 intermediate calculations');
+    assert(c.includes('d1') && c.includes('d2'), 'greeks/SKILL.md has d1/d2 intermediate calculations');
     assert(c.includes('Black-Scholes'), 'greeks.md references Black-Scholes');
   }
 
-  if (exists('commands/var-calc.md')) {
-    const c = read('commands/var-calc.md');
-    assert(c.includes('CVaR') || c.includes('Expected Shortfall'), 'var-calc.md has CVaR/Expected Shortfall');
+  if (exists('skills/var-calc/SKILL.md')) {
+    const c = read('skills/var-calc/SKILL.md');
+    assert(c.includes('CVaR') || c.includes('Expected Shortfall'), 'var-calc/SKILL.md has CVaR/Expected Shortfall');
     assert(c.includes('GBM') || c.includes('Geometric Brownian'), 'var-calc.md references GBM');
     assert(c.includes('ILLUSTRATIVE ESTIMATE'), 'var-calc.md has ILLUSTRATIVE ESTIMATE label');
   }
 
-  if (exists('commands/credit-risk.md')) {
-    const c = read('commands/credit-risk.md');
+  if (exists('skills/credit-risk/SKILL.md')) {
+    const c = read('skills/credit-risk/SKILL.md');
     assert(c.includes('EL = PD') || c.includes('EL=PD'), 'credit-risk.md has EL = PD × EAD × LGD formula');
     assert(c.includes('Unexpected Loss') || c.includes('UL ='), 'credit-risk.md has Unexpected Loss');
-    assert(c.includes('LGD'), 'credit-risk.md has LGD');
+    assert(c.includes('LGD'), 'credit-risk/SKILL.md has LGD');
   }
 
-  if (exists('commands/liquidity-risk.md')) {
-    const c = read('commands/liquidity-risk.md');
+  if (exists('skills/liquidity-risk/SKILL.md')) {
+    const c = read('skills/liquidity-risk/SKILL.md');
     assert(c.includes('LCR'), 'liquidity-risk.md has LCR');
     assert(c.includes('NSFR'), 'liquidity-risk.md has NSFR');
-    assert(c.includes('Cash Runway') || c.includes('cash runway'), 'liquidity-risk.md has cash runway');
+    assert(c.includes('Cash Runway') || c.includes('cash runway'), 'liquidity-risk/SKILL.md has cash runway');
   }
 
-  if (exists('commands/icaap.md')) {
-    const c = read('commands/icaap.md');
+  if (exists('skills/icaap/SKILL.md')) {
+    const c = read('skills/icaap/SKILL.md');
     assert(c.includes('EBA') || c.includes('EBA/GL'), 'icaap.md references EBA guidelines');
     assert(c.includes('CRD') || c.includes('Pillar 2'), 'icaap.md references CRD/Pillar 2');
     assert(c.includes('SECTION 1') || c.includes('Section 1'), 'icaap.md has Section 1');
     assert(c.includes('SECTION 7') || c.includes('Section 7') || c.includes('Governance'), 'icaap.md has 7 sections');
   }
 
-  if (exists('commands/rcsa.md')) {
-    const c = read('commands/rcsa.md');
+  if (exists('skills/rcsa/SKILL.md')) {
+    const c = read('skills/rcsa/SKILL.md');
     assert(c.includes('Inherent Risk'), 'rcsa.md has Inherent Risk');
     assert(c.includes('Residual Risk'), 'rcsa.md has Residual Risk');
-    assert(c.includes('ISO 31000'), 'rcsa.md references ISO 31000');
+    assert(c.includes('ISO 31000'), 'rcsa/SKILL.md references ISO 31000');
   }
 
-  if (exists('commands/kri-dashboard.md')) {
-    const c = read('commands/kri-dashboard.md');
+  if (exists('skills/kri-dashboard/SKILL.md')) {
+    const c = read('skills/kri-dashboard/SKILL.md');
     assert(c.includes('Green') && c.includes('Amber') && c.includes('Red'), 'kri-dashboard.md has RAG thresholds');
-    assert(c.includes('SMART') || c.includes('KRI'), 'kri-dashboard.md has KRI framework');
+    assert(c.includes('SMART') || c.includes('KRI'), 'kri-dashboard/SKILL.md has KRI framework');
   }
 
-  if (exists('commands/reg-calendar.md')) {
-    const c = read('commands/reg-calendar.md');
+  if (exists('skills/reg-calendar/SKILL.md')) {
+    const c = read('skills/reg-calendar/SKILL.md');
     assert(c.includes('CSSF') || c.includes('EBA') || c.includes('regulator'), 'reg-calendar.md references regulators');
     assert(c.includes('OFFICIAL SOURCES') || c.includes('Official Sources') || c.includes('official'), 'reg-calendar.md has official sources section');
-    assert(c.includes('URGENT') || c.includes('urgent') || c.includes('🔴'), 'reg-calendar.md has urgency flagging');
+    assert(c.includes('URGENT') || c.includes('urgent') || c.includes('🔴'), 'reg-calendar/SKILL.md has urgency flagging');
   }
 }
 
@@ -585,8 +589,8 @@ function testCommandSpecificContent() {
 function testEuRegulations() {
   console.log('\n🏛️   EU REGULATIONS ACCURACY');
 
-  if (!exists('skills/eu-regulations.md')) { assert(false, 'eu-regulations.md exists'); return; }
-  const c = read('skills/eu-regulations.md');
+  if (!exists('skills/eu-regulations/SKILL.md')) { assert(false, 'eu-regulations/SKILL.md exists'); return; }
+  const c = read('skills/eu-regulations/SKILL.md');
 
   // DORA went live January 2025 — the date must be present.
   assert(

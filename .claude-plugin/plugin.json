@@ -1,9 +1,9 @@
 {
     "$schema": "./schema.json",
     "name": "VKKM Aegis",
-    "author": "VKKM",
+    "author": {"name": "VKKM"},
     "website": "https://vaibhavkkm.com",
-    "version": "3.0",
+    "version": "3.0.0",
     "description": "Enterprise Finance Risk Management AI assistant. Covers market risk, credit risk, liquidity risk, operational risk, regulatory compliance, live market data, historical VaR backtesting, ML Probability of Default (scikit-learn), and structured Excel/JSON report export.",
     "trustworthiness_rating": "9.8/10",
     "compatible_models": [
@@ -33,109 +33,109 @@
     "command_specs": [
         {
             "command": "/vkkm:scan-document",
-            "spec_file": "commands/scan-document.md",
+            "spec_file": "skills/scan-document/SKILL.md",
             "reliability": "8.5/10",
             "description": "Analyze any contract, agreement, NDA, or legal document for risky clauses and missing protections"
         },
         {
             "command": "/vkkm:stress-test",
-            "spec_file": "commands/stress-test.md",
+            "spec_file": "skills/stress-test/SKILL.md",
             "reliability": "8/10",
             "description": "Simulate what happens to a portfolio or business under adverse market or operational scenarios"
         },
         {
             "command": "/vkkm:risk-register",
-            "spec_file": "commands/risk-register.md",
+            "spec_file": "skills/risk-register/SKILL.md",
             "reliability": "9.5/10",
             "description": "Generate a complete ISO 31000 structured risk register for a project, business, or team"
         },
         {
             "command": "/vkkm:regulatory-check",
-            "spec_file": "commands/regulatory-check.md",
+            "spec_file": "skills/regulatory-check/SKILL.md",
             "reliability": "8/10",
             "description": "Screen a product, process, or business for EU and global regulatory compliance gaps"
         },
         {
             "command": "/vkkm:escalation-report",
-            "spec_file": "commands/escalation-report.md",
+            "spec_file": "skills/escalation-report/SKILL.md",
             "reliability": "9.5/10",
             "description": "Write a professional risk escalation memo for management, stakeholders, or regulators"
         },
         {
             "command": "/vkkm:counterparty-profile",
-            "spec_file": "commands/counterparty-profile.md",
+            "spec_file": "skills/counterparty-profile/SKILL.md",
             "reliability": "7.5/10",
             "description": "Research and risk-score a company or individual before entering a business relationship"
         },
         {
             "command": "/vkkm:zscore",
-            "spec_file": "commands/zscore.md",
+            "spec_file": "skills/zscore/SKILL.md",
             "reliability": "9/10",
             "description": "Calculate Altman Z-Score to assess bankruptcy probability within 2 years — step-by-step workings shown"
         },
         {
             "command": "/vkkm:greeks",
-            "spec_file": "commands/greeks.md",
+            "spec_file": "skills/greeks/SKILL.md",
             "reliability": "9/10",
             "description": "Calculate all 5 Black-Scholes option Greeks for any European call or put — exact formula, not an estimate"
         },
         {
             "command": "/vkkm:var-calc",
-            "spec_file": "commands/var-calc.md",
+            "spec_file": "skills/var-calc/SKILL.md",
             "reliability": "8.5/10",
             "description": "Monte Carlo VaR and CVaR engine — 1,000,000-path GBM simulationhs via Python MCP, or parametric fallback"
         },
         {
             "command": "/vkkm:credit-risk",
-            "spec_file": "commands/credit-risk.md",
+            "spec_file": "skills/credit-risk/SKILL.md",
             "reliability": "8.5/10",
             "description": "Calculate PD, EAD, LGD, Expected Loss, and Unexpected Loss under the Basel credit risk framework"
         },
         {
             "command": "/vkkm:liquidity-risk",
-            "spec_file": "commands/liquidity-risk.md",
+            "spec_file": "skills/liquidity-risk/SKILL.md",
             "reliability": "8/10",
             "description": "Analyse LCR, NSFR, cash runway, and build a 12-month cash flow gap table"
         },
         {
             "command": "/vkkm:icaap",
-            "spec_file": "commands/icaap.md",
+            "spec_file": "skills/icaap/SKILL.md",
             "reliability": "8.5/10",
             "description": "Generate a structured ICAAP document — 7 sections, aligned to EBA guidelines under Basel III/IV Pillar 2"
         },
         {
             "command": "/vkkm:rcsa",
-            "spec_file": "commands/rcsa.md",
+            "spec_file": "skills/rcsa/SKILL.md",
             "reliability": "9/10",
             "description": "Risk and Control Self-Assessment — inherent risk, controls, residual risk, and gap identification per process"
         },
         {
             "command": "/vkkm:kri-dashboard",
-            "spec_file": "commands/kri-dashboard.md",
+            "spec_file": "skills/kri-dashboard/SKILL.md",
             "reliability": "8/10",
             "description": "Build a Key Risk Indicator dashboard with Green/Amber/Red thresholds and RAG status tracking"
         },
         {
             "command": "/vkkm:reg-calendar",
-            "spec_file": "commands/reg-calendar.md",
+            "spec_file": "skills/reg-calendar/SKILL.md",
             "reliability": "7.5/10",
             "description": "Compile upcoming regulatory reporting deadlines for the next 12 months — web-search grounded"
         },
         {
             "command": "/vkkm:backtest",
-            "spec_file": "commands/backtest.md",
+            "spec_file": "skills/backtest/SKILL.md",
             "reliability": "9.5/10",
             "description": "VaR model validation via Kupiec POF test — Basel traffic light (Green/Yellow/Red), exception clustering, p-value, and verdict"
         },
         {
             "command": "/vkkm:ml-pd",
-            "spec_file": "commands/ml-pd.md",
+            "spec_file": "skills/ml-pd/SKILL.md",
             "reliability": "8.5/10",
             "description": "ML-predicted Probability of Default (logistic regression) with 95% CI — trained on 300 synthetic companies calibrated to published default rates"
         },
         {
             "command": "/vkkm:export-report",
-            "spec_file": "commands/export-report.md",
+            "spec_file": "skills/export-report/SKILL.md",
             "reliability": "9/10",
             "description": "Generate a downloadable Excel (.xlsx) or JSON report from any prior VKKM Aegis command output — RAG colour-coded, board-ready"
         }
@@ -151,17 +151,17 @@
         "Plain-Language Explainer (auto-define technical terms on first use)"
     ],
     "skills_paths": [
-        "skills/risk-scoring.md",
-        "skills/eu-regulations.md",
-        "skills/contract-patterns.md",
-        "skills/financial-risk.md",
-        "skills/plain-language.md",
-        "skills/disclaimers.md",
-        "skills/credit-models.md",
-        "skills/options-theory.md",
-        "skills/regulatory-docs.md"
+        "skills/risk-scoring/SKILL.md",
+        "skills/eu-regulations/SKILL.md",
+        "skills/contract-patterns/SKILL.md",
+        "skills/financial-risk/SKILL.md",
+        "skills/plain-language/SKILL.md",
+        "skills/disclaimers/SKILL.md",
+        "skills/credit-models/SKILL.md",
+        "skills/options-theory/SKILL.md",
+        "skills/regulatory-docs/SKILL.md"
     ],
-    "system_prompt_path": "skills/risk-management/SKILL.md",
+    "system_prompt_path": "skills/risk-management/SKILL/SKILL.md",
     "system_prompt": "You are VKKM Aegis, an Enterprise Finance Risk Management AI assistant built by VKKM. Your purpose is to protect finance professionals, analysts, and risk teams from financial, regulatory, operational, credit, and market risk. V3.0 adds live market data (Yahoo Finance), VaR backtesting (Kupiec POF test), ML Probability of Default (scikit-learn), and structured Excel/JSON report export (openpyxl). 18 commands available.",
     "opening_message": "🛡️ VKKM Aegis is active.\nBuilt by VKKM (vaibhavkkm.com) — Enterprise Finance Risk Intelligence.\n\n18 commands available:\n\nMARKET RISK:\n  /vkkm:stress-test          Simulate financial shocks\n  /vkkm:var-calc             Monte Carlo VaR & CVaR\n  /vkkm:greeks               Black-Scholes options Greeks\n  /vkkm:backtest             VaR Model Backtest (Kupiec test) ★ NEW\n\nCREDIT RISK:\n  /vkkm:zscore               Altman Z-Score bankruptcy predictor\n  /vkkm:credit-risk          PD, EAD, LGD, Expected Loss\n  /vkkm:ml-pd                ML Probability of Default (w/ 95% CI) ★ NEW\n  /vkkm:counterparty-profile Supplier/partner due diligence\n\nOPERATIONAL RISK:\n  /vkkm:risk-register        ISO 31000 risk register\n  /vkkm:rcsa                 Risk & Control Self-Assessment\n  /vkkm:kri-dashboard        KRI monitoring dashboard\n  /vkkm:escalation-report    Risk escalation memos\n\nLIQUIDITY RISK:\n  /vkkm:liquidity-risk       LCR, cash runway, gap analysis\n\nREGULATORY:\n  /vkkm:regulatory-check     EU/global compliance screening\n  /vkkm:reg-calendar         Regulatory reporting deadlines\n  /vkkm:icaap                ICAAP document generator\n\nCONTRACTS:\n  /vkkm:scan-document        Contract risk scanner\n\nEXPORT:\n  /vkkm:export-report        Excel/JSON report generator ★ NEW\n\nOr describe your situation and I'll assess risk automatically.\n\n⚠️ VKKM Aegis supports professional decision-making but does not\nreplace qualified legal, financial, or compliance professionals.",
     "python_mcp_server": "mcp_server.py",

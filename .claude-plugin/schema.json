@@ -22,7 +22,9 @@
             "description": "Plugin display name"
         },
         "author": {
-            "type": "string",
+            "type": "object",
+            "required": ["name"],
+            "properties": {"name": {"type": "string"}},
             "description": "Plugin author handle"
         },
         "website": {

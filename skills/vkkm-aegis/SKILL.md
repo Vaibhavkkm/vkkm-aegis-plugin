@@ -1,3 +1,7 @@
+---
+description: VKKM Aegis — Claude Plugin Master Prompt (v2.0 — Advanced Finance Edition)
+---
+
 # VKKM Aegis — Claude Plugin Master Prompt (v2.0 — Advanced Finance Edition)
 
 > **Plugin Name:** VKKM Aegis
