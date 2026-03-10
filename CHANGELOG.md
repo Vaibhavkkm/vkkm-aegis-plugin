@@ -1,6 +1,25 @@
 # Changelog
 
-## v3.0 — 7 March 2026
+## v5.0.0 — 7 March 2026
+
+**VKKM Aegis Enterprise Edition (v5.0.0)**
+
+- **Advanced Python MCP Features**:
+  - Implemented `/fetch_portfolio_sql` to connect to enterprise SQL databases.
+  - Implemented `/plot_monte_carlo` for visual charting (Base64).
+  - Implemented `/sentiment_analysis` using local FinBERT.
+  - Implemented `/crypto_risk` for CoinGecko Crypto VaR.
+  - Implemented `/generate_pitchbook` for PDF export to Desktop.
+
+## v4.0.0 — 7 March 2026
+
+**VKKM Aegis (v4.0.0)**
+
+- **Marketplace Ready**: Added `.claude-plugin/marketplace.json`.
+- **SQL Integration**: Framework implemented for fetching true data.
+- **Privacy & Legal**: Formal privacy policy and MIT License with legal disclaimer.
+
+## v3.0.0 — 7 March 2026
 
 **VKKM Aegis Enterprise Edition** — from Advanced to Institutional grade.
 

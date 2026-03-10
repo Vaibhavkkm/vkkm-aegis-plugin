@@ -26,5 +26,8 @@ tests/output/
 tmp/
 temp/
 
+# Content files
+linkedin_post.txt
+
 # Internal docs
 DEPLOYMENT.md
