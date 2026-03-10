@@ -223,5 +223,5 @@ facility within 30 days, then address client concentration within 90 days.
 
 ---
 
-*Part of VKKM Aegis v2.0 — Advanced Finance Risk Management Plugin*
+*Part of VKKM Aegis v5.0.0 — Advanced Finance Risk Management Plugin*
 *Framework: BCBS 239 Risk Data Aggregation | ISO 31000 | EBA OpRisk Guidelines*

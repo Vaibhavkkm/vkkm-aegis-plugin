@@ -283,6 +283,6 @@ further consideration, require €350K in additional quality collateral before n
 
 ---
 
-*Part of VKKM Aegis v2.0 — Advanced Finance Risk Management Plugin*
+*Part of VKKM Aegis v5.0.0 — Advanced Finance Risk Management Plugin*
 *Framework: Basel II/III Credit Risk — IRB Approach*
 *Python MCP endpoint: POST /credit-risk — see mcp_server.py*

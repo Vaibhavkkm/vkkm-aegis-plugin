@@ -266,6 +266,6 @@ M3 outflow pressure begins — this single action removes the liquidity shortfal
 
 ---
 
-*Part of VKKM Aegis v2.0 — Advanced Finance Risk Management Plugin*
+*Part of VKKM Aegis v5.0.0 — Advanced Finance Risk Management Plugin*
 *Framework: Basel III LCR (Article 412 CRR) / NSFR (Article 428a CRR)*
 *Python MCP endpoint: POST /liquidity — see mcp_server.py*

@@ -8,7 +8,7 @@
  * Checks that:
  *   1. Every required file exists on disk
  *   2. Every JSON file is valid JSON
- *   3. plugin.json has all v3.0 fields and all 18 commands
+ *   3. plugin.json has all v5.0.0 fields and all 18 commands
  *   4. .mcp.json has all data connectors
  *   5. Every command spec file has the four required sections
  *   6. Every skill file has its key content
@@ -18,11 +18,11 @@
  *  10. The 5x5 risk scoring thresholds are internally consistent
  *  11. Command-specific content spot-checks for all 18 commands
  *  12. EU regulations coverage is accurate and complete
- *  13. v2.0 and v3.0 skill files have their key content
+ *  13. v5.0.0 and v5.0.0 skill files have their key content
  *  14. Python MCP server file and requirements.txt exist
- *  15. v3.0 data modules (live_data.py, backtest.py, ml_pd_model.py, excel_export.py) exist
+ *  15. v5.0.0 data modules (live_data.py, backtest.py, ml_pd_model.py, excel_export.py) exist
  *  16. Synthetic default dataset CSV exists
- *  17. v3.0 MCP endpoints referenced in mcp_server.py
+ *  17. v5.0.0 MCP endpoints referenced in mcp_server.py
  *
  * No npm packages required — plain Node.js only.
  */
@@ -56,7 +56,7 @@ const REQUIRED_FILES = [
   'skills/escalation-report/SKILL.md',
   'skills/counterparty-profile/SKILL.md',
 
-  // v2.0 commands (9)
+  // v5.0.0 commands (9)
   'skills/zscore/SKILL.md',
   'skills/greeks/SKILL.md',
   'skills/var-calc/SKILL.md',
@@ -67,7 +67,7 @@ const REQUIRED_FILES = [
   'skills/kri-dashboard/SKILL.md',
   'skills/reg-calendar/SKILL.md',
 
-  // v3.0 commands (3)
+  // v5.0.0 commands (3)
   'skills/backtest/SKILL.md',
   'skills/ml-pd/SKILL.md',
   'skills/export-report/SKILL.md',
@@ -80,7 +80,7 @@ const REQUIRED_FILES = [
   'skills/plain-language/SKILL.md',
   'skills/disclaimers/SKILL.md',
 
-  // v2.0 skills (3)
+  // v5.0.0 skills (3)
   'skills/credit-models/SKILL.md',
   'skills/options-theory/SKILL.md',
   'skills/regulatory-docs/SKILL.md',
@@ -93,7 +93,7 @@ const REQUIRED_FILES = [
   'mcp_server.py',
   'requirements.txt',
 
-  // v3.0 data modules
+  // v5.0.0 data modules
   'data/__init__.py',
   'data/live_data.py',
   'data/backtest.py',
@@ -126,7 +126,7 @@ const REQUIRED_SLASH_COMMANDS = [
   '/vkkm:rcsa',
   '/vkkm:kri-dashboard',
   '/vkkm:reg-calendar',
-  // v3.0 new commands
+  // v5.0.0 new commands
   '/vkkm:backtest',
   '/vkkm:ml-pd',
   '/vkkm:export-report',
@@ -151,7 +151,7 @@ const SKILL_REQUIRED_SECTIONS = {
   'skills/financial-risk/SKILL.md':    ['## Rule', 'Value at Risk', 'Monte Carlo', 'Stress Testing'],
   'skills/plain-language/SKILL.md':    ['## Rule', 'VaR', 'GDPR', 'ISO 31000'],
   'skills/disclaimers/SKILL.md':       ['Legal Disclaimer', 'Financial Disclaimer', 'Compliance Disclaimer', 'Due Diligence Disclaimer', 'Output Ordering'],
-  // New v2.0 skill files
+  // New v5.0.0 skill files
   'skills/credit-models/SKILL.md':     ['## Rule', 'Altman', 'X1', 'X3', 'PD', 'LGD', 'EAD', 'Expected Loss'],
   'skills/options-theory/SKILL.md':    ['## Rule', 'Black-Scholes', 'Delta', 'Gamma', 'Vega', 'Theta', 'Rho', 'd1', 'd2'],
   'skills/regulatory-docs/SKILL.md':   ['## Rule', 'ICAAP', 'RCSA', 'KRI', 'LCR', 'NSFR'],
@@ -251,9 +251,9 @@ function testJsonValidity() {
   return { pluginJson, mcpJson };
 }
 
-/** 3. Verify the plugin manifest has all v2.0 required fields. */
+/** 3. Verify the plugin manifest has all v5.0.0 required fields. */
 function testPluginJson(pluginJson) {
-  console.log('\n🔌  PLUGIN.JSON — v2.0 REQUIRED FIELDS');
+  console.log('\n🔌  PLUGIN.JSON — v5.0.0 REQUIRED FIELDS');
   if (!pluginJson) { assert(false, 'plugin.json parsed — skipping field tests'); return; }
 
   assert(pluginJson.name === 'VKKM Aegis', 'name = "VKKM Aegis"');
@@ -285,10 +285,10 @@ function testPluginJson(pluginJson) {
     'system_prompt inline field present (required for Claude Code / API usage)'
   );
 
-  // v2.0 must reference the Python MCP server.
+  // v5.0.0 must reference the Python MCP server.
   assert(
     typeof pluginJson.python_mcp_server === 'string',
-    'python_mcp_server field present (v2.0 requirement)'
+    'python_mcp_server field present (v5.0.0 requirement)'
   );
 }
 
@@ -333,7 +333,7 @@ function testCommandFiles() {
     'skills/regulatory-check/SKILL.md',
     'skills/escalation-report/SKILL.md',
     'skills/counterparty-profile/SKILL.md',
-    // New v2.0 commands
+    // New v5.0.0 commands
     'skills/zscore/SKILL.md',
     'skills/greeks/SKILL.md',
     'skills/var-calc/SKILL.md',
@@ -392,7 +392,7 @@ function testSkillFiles() {
 
 /** 7 & 8. Validate the master SKILL.md and confirm both copies are identical. */
 function testMasterPrompt() {
-  console.log('\n📜  MASTER PROMPT (SKILL.md v2.0)');
+  console.log('\n📜  MASTER PROMPT (SKILL.md v5.0.0)');
 
   const skillFile = 'skills/risk-management/SKILL.md';
   const aegisFile = 'skills/vkkm-aegis/SKILL.md';
@@ -410,7 +410,7 @@ function testMasterPrompt() {
   assert(content.includes('VKKM Aegis'), 'SKILL.md references brand name');
   assert(content.includes('2.0'), 'SKILL.md references version 2.0');
 
-  // New v2.0 skills must be in the master prompt.
+  // New v5.0.0 skills must be in the master prompt.
   assert(content.includes('Altman Z-Score') || content.includes('zscore'), 'SKILL.md references Z-Score skill');
   assert(content.includes('Black-Scholes') || content.includes('Greeks'), 'SKILL.md references options skill');
   assert(content.includes('ICAAP') || content.includes('RCSA'), 'SKILL.md references regulatory docs skill');
@@ -514,7 +514,7 @@ function testCommandSpecificContent() {
     assert(c.includes('DATA-GROUNDED'),         'stress-test/SKILL.md has DATA-GROUNDED label');
   }
 
-  // ── v2.0 commands ──────────────────────────────────────────────────────────
+  // ── v5.0.0 commands ──────────────────────────────────────────────────────────
 
   if (exists('skills/zscore/SKILL.md')) {
     const c = read('skills/zscore/SKILL.md');
@@ -635,7 +635,7 @@ function testMcpServer() {
 
 console.log('');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-console.log('  🛡️  VKKM Aegis v2.0 — Validation Suite');
+console.log('  🛡️  VKKM Aegis v5.0.0 — Validation Suite');
 console.log('  Built by VKKM (vaibhavkkm.com)');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 console.log(`  Root: ${ROOT}`);
@@ -661,9 +661,9 @@ const total = passed + failed;
 console.log('');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 if (failed === 0) {
-  console.log(`  ✅  VKKM Aegis v2.0 Validation — ALL CHECKS PASSED (${passed}/${total})`);
+  console.log(`  ✅  VKKM Aegis v5.0.0 Validation — ALL CHECKS PASSED (${passed}/${total})`);
 } else {
-  console.log(`  ❌  VKKM Aegis v2.0 Validation — FAILED (${failed} failure${failed !== 1 ? 's' : ''}, ${passed} passed)`);
+  console.log(`  ❌  VKKM Aegis v5.0.0 Validation — FAILED (${failed} failure${failed !== 1 ? 's' : ''}, ${passed} passed)`);
   console.log('');
   console.log('  Failures:');
   for (const f of failures) {

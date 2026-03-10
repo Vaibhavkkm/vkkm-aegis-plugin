@@ -233,5 +233,5 @@ EBIT margin trajectory before committing any further capital or credit exposure.
 
 ---
 
-*Part of VKKM Aegis v2.0 — Advanced Finance Risk Management Plugin*
+*Part of VKKM Aegis v5.0.0 — Advanced Finance Risk Management Plugin*
 *Model: Altman (1968) Z-Score, Altman (1983) Z' revision*

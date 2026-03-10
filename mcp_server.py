@@ -8,14 +8,14 @@ ML modeling, SQL database integrations, and export endpoints for the VKKM Aegis 
 Phase 4 endpoints (v4.0):
   POST /portfolio/sql — Fetch live portfolio data from enterprise SQL databases
 
-Phase 2 endpoints (v2.0):
+Phase 2 endpoints (v5.0.0):
   POST /monte-carlo  — 1,000,000-path GBM simulation → VaR + CVaR
   POST /greeks       — Exact Black-Scholes Greeks (δ, γ, ν, θ, ρ)
   POST /zscore       — Altman Z-Score (public Z model + private Z' model)
   POST /credit-risk  — PD × EAD × LGD → Expected & Unexpected Loss
   POST /liquidity    — LCR, NSFR, cash runway, 12-month gap table
 
-Phase 3 endpoints (v3.0):
+Phase 3 endpoints (v5.0.0):
   GET  /market-data  — Live price, realised vol, 1yr return via Yahoo Finance
   GET  /risk-free-rate — Current 3-month US T-bill yield
   POST /backtest     — Kupiec POF test + Basel traffic light (CSV P&L upload)
@@ -746,9 +746,9 @@ def compute_liquidity(req: LiquidityRequest):
     )
 
 
-# ─── Phase 3 / v3.0 Endpoints ────────────────────────────────────────────────────────
+# ─── Phase 3 / v5.0.0 Endpoints ────────────────────────────────────────────────────────
 
-# Pydantic models for v3.0 request / response bodies.
+# Pydantic models for v5.0.0 request / response bodies.
 
 class MLPDRequest(BaseModel):
     """Input financial ratios for the ML Probability of Default endpoint."""

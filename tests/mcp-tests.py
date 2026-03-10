@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-VKKM Aegis v2.0 — Python MCP Server Tests
+VKKM Aegis v5.0.0 — Python MCP Server Tests
 ==========================================
 Tests the five quantitative endpoints of mcp_server.py by importing the
 calculation functions directly (no server startup required — pure unit tests).
@@ -87,7 +87,7 @@ except ImportError as e:
 
 
 print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-print("  🐍  VKKM Aegis v2.0 — MCP Server Tests")
+print("  🐍  VKKM Aegis v5.0.0 — MCP Server Tests")
 print("  Built by VKKM (vaibhavkkm.com)")
 print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 

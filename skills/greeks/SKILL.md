@@ -243,5 +243,5 @@ within the 30-day window — if not, consider a longer-dated or lower-strike alt
 
 ---
 
-*Part of VKKM Aegis v2.0 — Advanced Finance Risk Management Plugin*
+*Part of VKKM Aegis v5.0.0 — Advanced Finance Risk Management Plugin*
 *Model: Black-Scholes (1973) | Greeks: standard derivatives thereof*

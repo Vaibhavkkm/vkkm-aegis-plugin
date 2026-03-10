@@ -19,7 +19,7 @@
 - **SQL Integration**: Framework implemented for fetching true data.
 - **Privacy & Legal**: Formal privacy policy and MIT License with legal disclaimer.
 
-## v3.0.0 — 7 March 2026
+## v5.0.0 — 7 March 2026
 
 **VKKM Aegis Enterprise Edition** — from Advanced to Institutional grade.
 
@@ -42,11 +42,11 @@
 
 ### Quality
 - validate.js: 390+ checks (all passing)
-- Trustworthiness: **9.8/10** (upgraded from 9.2/10 in v2.0)
+- Trustworthiness: **9.8/10** (upgraded from 9.2/10 in v5.0.0)
 
 ---
 
-## v2.0 — 7 March 2026
+## v5.0.0 — 7 March 2026
 
 **VKKM Aegis Advanced Finance Edition** — the biggest upgrade since launch.
 
@@ -82,10 +82,10 @@
 - `tests/mcp-tests.py` — Python unit tests for all 5 MCP server functions (put-call parity, Z-Score zones, GBM VaR range, credit risk math, liquidity gap tracing)  
 
 ### Updated Files
-- `plugin.json` → v2.0: 15 commands, 9 skill paths, Python MCP reference, new opening message
-- `SKILL.md` (both copies) → v2.0 master prompt: all 15 commands, 8 skills, command reference card
+- `plugin.json` → v5.0.0: 15 commands, 9 skill paths, Python MCP reference, new opening message
+- `SKILL.md` (both copies) → v5.0.0 master prompt: all 15 commands, 8 skills, command reference card
 - `.mcp.json` → added `python-mcp-server` entry
-- `package.json` → v2.0.0, added `test:math`, `test:python`, `test:all`, `mcp:start`, `mcp:install` scripts
+- `package.json` → v5.0.0, added `test:math`, `test:python`, `test:all`, `mcp:start`, `mcp:install` scripts
 
 ---
 

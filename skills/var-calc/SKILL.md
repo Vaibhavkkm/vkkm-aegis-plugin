@@ -240,6 +240,6 @@ your stated risk appetite — if your maximum acceptable annual drawdown is less
 
 ---
 
-*Part of VKKM Aegis v2.0 — Advanced Finance Risk Management Plugin*
+*Part of VKKM Aegis v5.0.0 — Advanced Finance Risk Management Plugin*
 *Model: Geometric Brownian Motion Monte Carlo | Basel III VaR framework*
 *Python MCP endpoint: POST /monte-carlo — see mcp_server.py*

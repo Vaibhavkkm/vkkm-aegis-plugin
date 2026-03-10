@@ -210,5 +210,5 @@ at 15/25 residual risk is the most severe open control gap and a regulatory exam
 
 ---
 
-*Part of VKKM Aegis v2.0 — Advanced Finance Risk Management Plugin*
+*Part of VKKM Aegis v5.0.0 — Advanced Finance Risk Management Plugin*
 *Framework: ISO 31000 | Basel II Operational Risk | EBA OpRisk Guidelines*

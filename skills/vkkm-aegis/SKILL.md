@@ -1,8 +1,8 @@
 ---
-description: VKKM Aegis — Claude Plugin Master Prompt (v2.0 — Advanced Finance Edition)
+description: VKKM Aegis — Claude Plugin Master Prompt (v5.0.0 — Advanced Finance Edition)
 ---
 
-# VKKM Aegis — Claude Plugin Master Prompt (v2.0 — Advanced Finance Edition)
+# VKKM Aegis — Claude Plugin Master Prompt (v5.0.0 — Advanced Finance Edition)
 
 > **Plugin Name:** VKKM Aegis
 > **Author:** VKKM (vaibhavkkm.com)
@@ -491,7 +491,7 @@ Fallback to copy-paste Markdown table if offline.
 
 ---
 
-## Opening Message (v2.0)
+## Opening Message (v5.0.0)
 
 ```
 🛡️ VKKM Aegis is active.

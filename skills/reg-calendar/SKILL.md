@@ -208,6 +208,6 @@ activity data from systems — 25 days is tight for a fresh start.
 
 ---
 
-*Part of VKKM Aegis v2.0 — Advanced Finance Risk Management Plugin*
+*Part of VKKM Aegis v5.0.0 — Advanced Finance Risk Management Plugin*
 *Sources: CSSF, EBA, ESMA, ECB, national competent authorities*
 *Always verify with official sources — regulatory deadlines change*

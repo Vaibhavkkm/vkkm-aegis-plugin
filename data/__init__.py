@@ -2,7 +2,7 @@
 VKKM Aegis — Data Package (Phase 3)
 =====================================
 Package containing all data acquisition, backtesting, ML modeling,
-and export modules for the v3.0 enterprise feature set.
+and export modules for the v5.0.0 enterprise feature set.
 
 Modules:
     live_data      — yfinance market data (prices, vol, risk-free rate)

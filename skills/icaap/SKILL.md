@@ -233,5 +233,5 @@ advisor before BaFin submission — focus on IRRBB stress testing and Section 6 
 
 ---
 
-*Part of VKKM Aegis v2.0 — Advanced Finance Risk Management Plugin*
+*Part of VKKM Aegis v5.0.0 — Advanced Finance Risk Management Plugin*
 *Framework: EBA/GL/2016/10 | CRD Article 73 | Basel III Pillar 2*
