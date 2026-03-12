@@ -5,7 +5,7 @@
         "name": "VKKM"
     },
     "website": "https://vaibhavkkm.com",
-    "version": "3.0.0",
+    "version": "5.0.0",
     "description": "Enterprise Finance Risk Management AI assistant. Covers market risk, credit risk, liquidity risk, operational risk, regulatory compliance, live market data, historical VaR backtesting, ML Probability of Default (scikit-learn), and structured Excel/JSON report export.",
     "trustworthiness_rating": "9.8/10",
     "compatible_models": [
