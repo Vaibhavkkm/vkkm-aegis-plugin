@@ -174,5 +174,5 @@ Aegis is highly opinionated about how a professional quant builds software:
 
 ---
 
-**Built by VKKM** — [vaibhavkkm.com](https://vaibhavkkm.com)  
+**Built by VKKM** — [vaibhavkkm.com](https://vaibhavkkm.com) | [Official Website](https://aegis.vaibhavkkm.com/)  
 *VKKM Aegis Enterprise Edition (v5.0)*
